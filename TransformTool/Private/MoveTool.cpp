@@ -77,7 +77,7 @@ void AMoveTool::InitCombinationAxis()
     AxisXY->RelativeLocation = FVector(0.25f, 0.25f, 0.0f);
     AxisXY->RelativeScale3D = FVector(0.003906f, 0.003906f, 0.000244f);
 
-    //AxisXZ->OnComponentBeginOverlap.AddDynamic();
+    AxisXZ->OnComponentBeginOverlap.AddDynamic(this, &AMoveTool::OnBeginOverlap);
 }
 
 class UStaticMeshComponent* AMoveTool::CreateCombinationAxis(FString name)
@@ -94,7 +94,12 @@ class UStaticMeshComponent* AMoveTool::CreateCombinationAxis(FString name)
 
     pCombinationAxis->AttachTo(Center);
 
-    pCombinationAxis->SetCollisionProfileName(FName(TEXT("OverlapAllDynamic")));
+    pCombinationAxis->SetCollisionProfileName(FName(TEXT("UI")));
 
     return pCombinationAxis;
+}
+
+void AMoveTool::OnBeginOverlap(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+    GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "debug msg");
 }
