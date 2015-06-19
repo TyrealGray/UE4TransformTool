@@ -23,19 +23,32 @@ public:
 private:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Center, meta = (AllowPrivateAccess = "true"))
-    class USphereComponent * m_pCenter;
+    class USphereComponent * Center;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UArrowComponent * m_pAxisX;
+    class UArrowComponent * AxisX;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UArrowComponent * m_pAxisY;
+    class UArrowComponent * AxisY;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UArrowComponent * m_pAxisZ;
+    class UArrowComponent * AxisZ;
 
-    void initAxis();
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
+    class UStaticMeshComponent * AxisXZ;
 
-    class UArrowComponent* createAxis(FString name);
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
+    class UStaticMeshComponent * AxisXY;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
+    class UStaticMeshComponent * AxisYZ;
+
+    void InitAxis();
+
+    void InitCombinationAxis();
+
+    class UArrowComponent* CreateAxis(FString name);
+
+    class UStaticMeshComponent* CreateCombinationAxis(FString name);
 
 };

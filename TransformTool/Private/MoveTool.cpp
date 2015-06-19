@@ -7,22 +7,18 @@
 // Sets default values
 AMoveTool::AMoveTool()
 {
-    //static ConstructorHelpers::FObjectFinder<UMaterial> MatFinder(TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
-
     // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
-    m_pCenter = CreateDefaultSubobject<USphereComponent>(TEXT("center"));
-    RootComponent = m_pCenter;
-    m_pCenter->SetSphereRadius(0.2f);
-    //if (MatFinder.Succeeded())
-    //{
-    //    m_pCenter->ShapeMaterial = UMaterialInstanceDynamic::Create(MatFinder.Object, this);
-    //}
+    Center = CreateDefaultSubobject<USphereComponent>(TEXT("center"));
+    RootComponent = Center;
+    Center->SetSphereRadius(0.2f);
 
     //m_pCenter->OnBeginCursorOver.AddDynamic();
 
-    initAxis();
+    InitAxis();
+
+    InitCombinationAxis();
 }
 
 // Called when the game starts or when spawned
@@ -39,30 +35,66 @@ void AMoveTool::Tick( float DeltaTime )
 
 }
 
-void AMoveTool::initAxis()
+void AMoveTool::InitAxis()
 {
-    m_pAxisX = createAxis("AxisX");
-    m_pAxisX->ArrowColor = FColor(0xFF, 0x00, 0x00, 0xFF);
-    m_pAxisX->RelativeRotation = FRotator(0.0f, 0.0f, 90.0f);
+    AxisX = CreateAxis("AxisX");
+    AxisX->ArrowColor = FColor(0xFF, 0x00, 0x00, 0xFF);
+    AxisX->RelativeRotation = FRotator(0.0f, 0.0f, 90.0f);
 
-    m_pAxisY = createAxis("AxisY");
-    m_pAxisY->ArrowColor = FColor(0x00, 0xFF, 0x00, 0xFF);
-    m_pAxisY->RelativeRotation = FRotator(0.0f, 90.0f, 0.0f);
+    AxisY = CreateAxis("AxisY");
+    AxisY->ArrowColor = FColor(0x00, 0xFF, 0x00, 0xFF);
+    AxisY->RelativeRotation = FRotator(0.0f, 90.0f, 0.0f);
 
-    m_pAxisZ = createAxis("AxisZ");
-    m_pAxisZ->ArrowColor = FColor(0x00, 0x00, 0xFF, 0xFF);
-    m_pAxisZ->RelativeRotation = FRotator(90.0f, 0.0f, 0.0f);
+    AxisZ = CreateAxis("AxisZ");
+    AxisZ->ArrowColor = FColor(0x00, 0x00, 0xFF, 0xFF);
+    AxisZ->RelativeRotation = FRotator(90.0f, 0.0f, 0.0f);
 }
 
-class UArrowComponent* AMoveTool::createAxis(FString name)
+class UArrowComponent* AMoveTool::CreateAxis(FString name)
 {
     UArrowComponent* pAxis = CreateDefaultSubobject<UArrowComponent>(*name);
 
     pAxis->ArrowSize = 0.025f;
     pAxis->bHiddenInGame = false;
 
-    pAxis->AttachTo(m_pCenter);
+    pAxis->AttachTo(Center);
 
     return pAxis;
 }
 
+void AMoveTool::InitCombinationAxis()
+{
+    AxisXZ = CreateCombinationAxis("AxisX&Z");
+    AxisYZ = CreateCombinationAxis("AxisY&Z");
+    AxisXY = CreateCombinationAxis("AxisX&Y");
+
+    AxisXZ->RelativeLocation = FVector(0.25f, 0.0f, 0.25f);
+    AxisXZ->RelativeScale3D = FVector(0.003906f, 0.000244f, 0.003906f);
+
+    AxisYZ->RelativeLocation = FVector(0.0f, 0.25f, 0.25f);
+    AxisYZ->RelativeScale3D = FVector(0.000244f, 0.003906f, 0.003906f);
+
+    AxisXY->RelativeLocation = FVector(0.25f, 0.25f, 0.0f);
+    AxisXY->RelativeScale3D = FVector(0.003906f, 0.003906f, 0.000244f);
+
+    //AxisXZ->OnComponentBeginOverlap.AddDynamic();
+}
+
+class UStaticMeshComponent* AMoveTool::CreateCombinationAxis(FString name)
+{
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> MehFinder(TEXT("/Engine/BasicShapes/Cube"));
+
+    static ConstructorHelpers::FObjectFinder<UMaterial> MatFinder(TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
+
+    UStaticMeshComponent* pCombinationAxis = CreateDefaultSubobject<UStaticMeshComponent>(*name);
+
+    pCombinationAxis->StaticMesh = MehFinder.Object;
+
+    pCombinationAxis->SetMaterial(0, UMaterialInstanceDynamic::Create(MatFinder.Object, this));
+
+    pCombinationAxis->AttachTo(Center);
+
+    pCombinationAxis->SetCollisionProfileName(FName(TEXT("OverlapAllDynamic")));
+
+    return pCombinationAxis;
+}
