@@ -90,7 +90,7 @@ class UStaticMeshComponent* AMoveTool::CreateCombinationAxis(FString name)
 
     pCombinationAxis->StaticMesh = MehFinder.Object;
 
-    pCombinationAxis->SetMaterial(0, UMaterialInstanceDynamic::Create(MatFinder.Object, this));
+    pCombinationAxis->SetMaterial(0, MatFinder.Object);
 
     pCombinationAxis->AttachTo(Center);
 
