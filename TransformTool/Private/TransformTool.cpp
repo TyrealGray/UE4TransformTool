@@ -1,5 +1,4 @@
 #include "TransformTool.h"
-#include "TransformToolPrivatePCH.h"
 void TransformToolImpl::StartupModule()
 {
 }
