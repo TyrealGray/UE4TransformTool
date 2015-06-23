@@ -10,6 +10,12 @@ AMoveTool::AMoveTool()
     // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
+    AttachedCamera = nullptr;
+
+    OverlookActor = nullptr;
+
+    IsInit = false;
+
     Center = CreateDefaultSubobject<USphereComponent>(TEXT("center"));
     RootComponent = Center;
     Center->SetSphereRadius(0.2f);
@@ -33,6 +39,17 @@ void AMoveTool::Tick( float DeltaTime )
 {
     Super::Tick( DeltaTime );
 
+    UpdateMoveToolPosition();
+}
+
+void AMoveTool::BindingTool(class UCameraComponent* Camera)
+{
+    AttachedCamera = Camera;
+}
+
+void AMoveTool::SetOverlookActor(class AActor* Actor)
+{
+    OverlookActor = Actor;
 }
 
 void AMoveTool::InitAxis()
@@ -76,8 +93,6 @@ void AMoveTool::InitCombinationAxis()
 
     AxisXY->RelativeLocation = FVector(0.25f, 0.25f, 0.0f);
     AxisXY->RelativeScale3D = FVector(0.003906f, 0.003906f, 0.000244f);
-
-    AxisXZ->OnComponentBeginOverlap.AddDynamic(this, &AMoveTool::OnBeginOverlap);
 }
 
 class UStaticMeshComponent* AMoveTool::CreateCombinationAxis(FString name)
@@ -90,7 +105,7 @@ class UStaticMeshComponent* AMoveTool::CreateCombinationAxis(FString name)
 
     pCombinationAxis->StaticMesh = MehFinder.Object;
 
-    pCombinationAxis->SetMaterial(0, MatFinder.Object);
+    //pCombinationAxis->SetMaterial(0, MatFinder.Object);
 
     pCombinationAxis->AttachTo(Center);
 
@@ -99,7 +114,16 @@ class UStaticMeshComponent* AMoveTool::CreateCombinationAxis(FString name)
     return pCombinationAxis;
 }
 
-void AMoveTool::OnBeginOverlap(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+void AMoveTool::UpdateMoveToolPosition()
 {
-    GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "debug msg");
+    if (!IsValid(OverlookActor) || !IsValid(AttachedCamera))
+    {
+        return;
+    }
+
+    FRotator ViewRotation = AttachedCamera->GetComponentRotation();
+    FVector ViewLocation = AttachedCamera->GetComponentLocation();
+
+    FVector moveToolLocation = (OverlookActor->GetActorLocation() - ViewLocation).Rotation().RotateVector(FVector(15.0f, 0.0f, 0.0f));
+    SetActorLocation(ViewLocation + moveToolLocation);
 }

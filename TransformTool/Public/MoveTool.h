@@ -20,8 +20,9 @@ public:
     // Called every frame
     virtual void Tick( float DeltaSeconds ) override;
 
-    UFUNCTION()
-    void OnBeginOverlap(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+    void BindingTool( class UCameraComponent* pCamera);
+
+    void SetOverlookActor( class AActor* Actor);
 
 private:
 
@@ -46,6 +47,10 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
     class UStaticMeshComponent * AxisYZ;
 
+    class UCameraComponent* AttachedCamera;
+
+    class AActor* OverlookActor;
+
     void InitAxis();
 
     void InitCombinationAxis();
@@ -53,5 +58,7 @@ private:
     class UArrowComponent* CreateAxis(FString name);
 
     class UStaticMeshComponent* CreateCombinationAxis(FString name);
+
+    void UpdateMoveToolPosition();
 
 };
