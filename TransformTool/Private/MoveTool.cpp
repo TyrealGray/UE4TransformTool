@@ -14,8 +14,6 @@ AMoveTool::AMoveTool()
 
     OverlookActor = nullptr;
 
-    IsInit = false;
-
     Center = CreateDefaultSubobject<USphereComponent>(TEXT("center"));
     RootComponent = Center;
     Center->SetSphereRadius(0.2f);
