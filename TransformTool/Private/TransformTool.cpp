@@ -5,4 +5,4 @@ void TransformToolImpl::StartupModule()
 void TransformToolImpl::ShutdownModule()
 {
 }
-IMPLEMENT_MODULE(TransformToolImpl, Module)
+IMPLEMENT_GAME_MODULE(TransformToolImpl, TransformTool)
