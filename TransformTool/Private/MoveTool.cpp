@@ -70,7 +70,7 @@ class UArrowComponent* AMoveTool::CreateAxis(FString name)
 {
     UArrowComponent* pAxis = CreateDefaultSubobject<UArrowComponent>(*name);
 
-    pAxis->ArrowSize = 0.025f;
+    pAxis->ArrowSize = 0.1f;
     pAxis->bHiddenInGame = false;
 
     pAxis->AttachTo(Center);
@@ -84,14 +84,14 @@ void AMoveTool::InitCombinationAxis()
     AxisYZ = CreateCombinationAxis("AxisY&Z");
     AxisXY = CreateCombinationAxis("AxisX&Y");
 
-    AxisXZ->RelativeLocation = FVector(0.25f, 0.0f, 0.25f);
-    AxisXZ->RelativeScale3D = FVector(0.003906f, 0.000244f, 0.003906f);
+    AxisXZ->RelativeLocation = FVector(0.7f, 0.0f, 0.7f);
+    AxisXZ->RelativeScale3D = FVector(0.009765f, 0.000244f, 0.009765f);
 
-    AxisYZ->RelativeLocation = FVector(0.0f, 0.25f, 0.25f);
-    AxisYZ->RelativeScale3D = FVector(0.000244f, 0.003906f, 0.003906f);
+    AxisYZ->RelativeLocation = FVector(0.0f, 0.7f, 0.7f);
+    AxisYZ->RelativeScale3D = FVector(0.000244f, 0.009765f, 0.009765f);
 
-    AxisXY->RelativeLocation = FVector(0.25f, 0.25f, 0.0f);
-    AxisXY->RelativeScale3D = FVector(0.003906f, 0.003906f, 0.000244f);
+    AxisXY->RelativeLocation = FVector(0.7f, 0.7f, 0.0f);
+    AxisXY->RelativeScale3D = FVector(0.009765f, 0.009765f, 0.000244f);
 }
 
 class UStaticMeshComponent* AMoveTool::CreateCombinationAxis(FString name)
@@ -123,6 +123,6 @@ void AMoveTool::UpdateMoveToolPosition()
     FRotator ViewRotation = AttachedCamera->GetComponentRotation();
     FVector ViewLocation = AttachedCamera->GetComponentLocation();
 
-    FVector moveToolLocation = (OverlookActor->GetActorLocation() - ViewLocation).Rotation().RotateVector(FVector(15.0f, 0.0f, 0.0f));
+    FVector moveToolLocation = (OverlookActor->GetActorLocation() - ViewLocation).Rotation().RotateVector(FVector(72.0f, 0.0f, 0.0f));
     SetActorLocation(ViewLocation + moveToolLocation);
 }
