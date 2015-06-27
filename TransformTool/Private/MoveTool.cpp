@@ -4,7 +4,6 @@
 #include "TransformToolPrivatePCH.h"
 #include "MoveTool.h"
 
-
 // Sets default values
 AMoveTool::AMoveTool()
 {
@@ -19,9 +18,9 @@ AMoveTool::AMoveTool()
     RootComponent = Center;
     Center->SetSphereRadius(0.2f);
 
-    //m_pCenter->OnBeginCursorOver.AddDynamic();
-
     InitAxis();
+
+    InitBox();
 
     InitCombinationAxis();
 }
@@ -30,15 +29,12 @@ AMoveTool::AMoveTool()
 void AMoveTool::BeginPlay()
 {
     Super::BeginPlay();
-
 }
 
 // Called every frame
 void AMoveTool::Tick( float DeltaTime )
 {
     Super::Tick( DeltaTime );
-
-    UpdateMoveToolPosition();
 }
 
 void AMoveTool::BindingTool(class UCameraComponent* Camera)
@@ -76,6 +72,36 @@ class UArrowComponent* AMoveTool::CreateAxis(FString name)
     pAxis->AttachTo(Center);
 
     return pAxis;
+}
+
+void AMoveTool::InitBox()
+{
+    BoxX = CreateBox("BoxX");
+    BoxX->RelativeLocation = FVector(4.5f, 0.0f, 0.0f);
+    BoxX->RelativeScale3D = FVector(0.1f, 0.015625f, 0.015625f);
+
+    BoxX->OnClicked.AddDynamic(this, &AMoveTool::OnAxisXClicked);
+
+    BoxY = CreateBox("BoxY");
+    BoxY->RelativeLocation = FVector(0.0f, 4.5f, 0.0f);
+    BoxY->RelativeScale3D = FVector(0.015625f, 0.1f, 0.015625f);
+
+    BoxY->OnClicked.AddDynamic(this, &AMoveTool::OnAxisYClicked);
+
+    BoxZ = CreateBox("BoxZ");
+    BoxZ->RelativeLocation = FVector(0.0f, 0.0f, 4.5f);
+    BoxZ->RelativeScale3D = FVector(0.015625f, 0.015625f, 0.1f);
+
+    BoxZ->OnClicked.AddDynamic(this, &AMoveTool::OnAxisZClicked);
+}
+
+class UBoxComponent* AMoveTool::CreateBox(FString name)
+{
+    UBoxComponent* pBox = CreateDefaultSubobject<UBoxComponent>(*name);
+    pBox->SetCollisionProfileName(FName(TEXT("UI")));
+    pBox->AttachTo(Center);
+
+    return pBox;
 }
 
 void AMoveTool::InitCombinationAxis()
@@ -125,4 +151,34 @@ void AMoveTool::UpdateMoveToolPosition()
 
     FVector moveToolLocation = (OverlookActor->GetActorLocation() - ViewLocation).Rotation().RotateVector(FVector(72.0f, 0.0f, 0.0f));
     SetActorLocation(ViewLocation + moveToolLocation);
+}
+
+void AMoveTool::OnAxisXClicked(class UPrimitiveComponent* TouchedComponent)
+{
+    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAxisXClicked");
+}
+
+void AMoveTool::OnAxisXReleased(class UPrimitiveComponent* TouchedComponent)
+{
+    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAxisXReleased");
+}
+
+void AMoveTool::OnAxisYClicked(class UPrimitiveComponent* TouchedComponent)
+{
+    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAxisYClicked");
+}
+
+void AMoveTool::OnAxisYReleased(class UPrimitiveComponent* TouchedComponent)
+{
+    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAxisYReleased");
+}
+
+void AMoveTool::OnAxisZClicked(class UPrimitiveComponent* TouchedComponent)
+{
+    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAxisZClicked");
+}
+
+void AMoveTool::OnAxisZReleased(class UPrimitiveComponent* TouchedComponent)
+{
+    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAxisZReleased");
 }

@@ -20,9 +20,11 @@ public:
     // Called every frame
     virtual void Tick( float DeltaSeconds ) override;
 
-    void BindingTool( class UCameraComponent* pCamera);
+    void BindingTool( class UCameraComponent* Camera);
 
     void SetOverlookActor( class AActor* Actor);
+
+    void UpdateMoveToolPosition();
 
 private:
 
@@ -47,18 +49,46 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
     class UStaticMeshComponent * AxisYZ;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
+    class UBoxComponent * BoxX;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
+    class UBoxComponent * BoxY;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
+    class UBoxComponent * BoxZ;
+
     class UCameraComponent* AttachedCamera;
 
     class AActor* OverlookActor;
 
     void InitAxis();
 
+    void InitBox();
+
     void InitCombinationAxis();
 
     class UArrowComponent* CreateAxis(FString name);
 
+    class UBoxComponent* CreateBox(FString name);
+
     class UStaticMeshComponent* CreateCombinationAxis(FString name);
 
-    void UpdateMoveToolPosition();
+    UFUNCTION()
+    void OnAxisXClicked(class UPrimitiveComponent* TouchedComponent);
 
+    UFUNCTION()
+    void OnAxisXReleased(class UPrimitiveComponent* TouchedComponent);
+
+    UFUNCTION()
+    void OnAxisYClicked(class UPrimitiveComponent* TouchedComponent);
+
+    UFUNCTION()
+    void OnAxisYReleased(class UPrimitiveComponent* TouchedComponent);
+
+    UFUNCTION()
+    void OnAxisZClicked(class UPrimitiveComponent* TouchedComponent);
+
+    UFUNCTION()
+    void OnAxisZReleased(class UPrimitiveComponent* TouchedComponent);
 };
