@@ -76,61 +76,65 @@ void AMoveTool::InitBox()
 {
     BoxX = CreateBox("BoxX", FVector(4.5f, 0.0f, 0.0f), FVector(0.1f, 0.015625f, 0.015625f));
     BoxX->OnClicked.AddDynamic(this, &AMoveTool::OnAxisXClicked);
-    BoxX->OnBeginCursorOver.AddDynamic(this, &AMoveTool::OnAxisXBeginCursorOver);
-    BoxX->OnEndCursorOver.AddDynamic(this, &AMoveTool::OnAxisXEndCursorOver);
 
     BoxY = CreateBox("BoxY", FVector(0.0f, 4.5f, 0.0f), FVector(0.015625f, 0.1f, 0.015625f));
     BoxY->OnClicked.AddDynamic(this, &AMoveTool::OnAxisYClicked);
-    BoxY->OnBeginCursorOver.AddDynamic(this, &AMoveTool::OnAxisYBeginCursorOver);
-    BoxY->OnEndCursorOver.AddDynamic(this, &AMoveTool::OnAxisYEndCursorOver);
 
     BoxZ = CreateBox("BoxZ", FVector(0.0f, 0.0f, 4.5f), FVector(0.015625f, 0.015625f, 0.1f));
     BoxZ->OnClicked.AddDynamic(this, &AMoveTool::OnAxisZClicked);
-    BoxZ->OnBeginCursorOver.AddDynamic(this, &AMoveTool::OnAxisZBeginCursorOver);
-    BoxZ->OnEndCursorOver.AddDynamic(this, &AMoveTool::OnAxisZEndCursorOver);
 }
 
 class UBoxComponent* AMoveTool::CreateBox(FString Name, FVector Location, FVector Scale3D)
 {
-    UBoxComponent* pBox = CreateDefaultSubobject<UBoxComponent>(*Name);
-    pBox->SetCollisionProfileName(FName(TEXT("UI")));
+    UBoxComponent* Box = CreateDefaultSubobject<UBoxComponent>(*Name);
+    Box->SetCollisionProfileName(FName(TEXT("UI")));
 
-    pBox->RelativeLocation = Location;
-    pBox->RelativeScale3D = Scale3D;
+    Box->RelativeLocation = Location;
+    Box->RelativeScale3D = Scale3D;
 
-    pBox->AttachTo(Center);
+    Box->OnReleased.AddDynamic(this, &AMoveTool::OnAxisReleased);
+    Box->OnBeginCursorOver.AddDynamic(this, &AMoveTool::OnAxisBeginCursorOver);
+    Box->OnEndCursorOver.AddDynamic(this, &AMoveTool::OnAxisEndCursorOver);
 
-    return pBox;
+    Box->AttachTo(Center);
+
+    return Box;
 }
 
 void AMoveTool::InitCombinationAxis()
 {
-    AxisXZ = CreateCombinationAxis("AxisX&Z", FVector(1.4f, 0.0f, 1.4f), FVector(0.024f, 0.000244f, 0.024f));
-    AxisYZ = CreateCombinationAxis("AxisY&Z", FVector(0.0f, 1.4f, 1.4f), FVector(0.000244f, 0.024f, 0.024f));
     AxisXY = CreateCombinationAxis("AxisX&Y", FVector(1.4f, 1.4f, 0.0f), FVector(0.024f, 0.024f, 0.000244f));
+    AxisXY->OnClicked.AddDynamic(this, &AMoveTool::OnAxisXYClicked);
+
+    AxisXZ = CreateCombinationAxis("AxisX&Z", FVector(1.4f, 0.0f, 1.4f), FVector(0.024f, 0.000244f, 0.024f));
+    AxisXZ->OnClicked.AddDynamic(this, &AMoveTool::OnAxisXZClicked);
+
+    AxisYZ = CreateCombinationAxis("AxisY&Z", FVector(0.0f, 1.4f, 1.4f), FVector(0.000244f, 0.024f, 0.024f));
+    AxisYZ->OnClicked.AddDynamic(this, &AMoveTool::OnAxisYZClicked);
 }
 
 class UStaticMeshComponent* AMoveTool::CreateCombinationAxis(FString Name, FVector Location, FVector Scale3D)
 {
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> MehFinder(TEXT("/Engine/BasicShapes/Cube"));
+    UStaticMeshComponent* CombinationAxis = CreateDefaultSubobject<UStaticMeshComponent>(*Name);
 
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> MehFinder(TEXT("/Engine/BasicShapes/Cube"));
     static ConstructorHelpers::FObjectFinder<UMaterial> MatFinder(TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
 
-    UStaticMeshComponent* pCombinationAxis = CreateDefaultSubobject<UStaticMeshComponent>(*Name);
+    CombinationAxis->StaticMesh = MehFinder.Object;
+    CombinationAxis->SetMaterial(0, MatFinder.Object);
 
-    pCombinationAxis->StaticMesh = MehFinder.Object;
+    CombinationAxis->SetCollisionProfileName(FName(TEXT("UI")));
 
-    pCombinationAxis->SetMaterial(0, MatFinder.Object);
+    CombinationAxis->RelativeLocation = Location;
+    CombinationAxis->RelativeScale3D = Scale3D;
 
-    pCombinationAxis->SetCollisionProfileName(FName(TEXT("UI")));
+    CombinationAxis->OnReleased.AddDynamic(this, &AMoveTool::OnAxisReleased);
+    CombinationAxis->OnBeginCursorOver.AddDynamic(this, &AMoveTool::OnAxisBeginCursorOver);
+    CombinationAxis->OnEndCursorOver.AddDynamic(this, &AMoveTool::OnAxisEndCursorOver);
 
-    pCombinationAxis->RelativeLocation = Location;
+    CombinationAxis->AttachTo(Center);
 
-    pCombinationAxis->RelativeScale3D = Scale3D;
-
-    pCombinationAxis->AttachTo(Center);
-
-    return pCombinationAxis;
+    return CombinationAxis;
 }
 
 void AMoveTool::UpdateMoveToolPosition()
@@ -147,83 +151,9 @@ void AMoveTool::UpdateMoveToolPosition()
     SetActorLocation(ViewLocation + moveToolLocation);
 }
 
-void AMoveTool::OnAxisXClicked(class UPrimitiveComponent* TouchedComponent)
-{
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisXClicked");
-    SetCurrentStatus(EMoveToolStatusEnum::ES_AXISX);
-}
-
-void AMoveTool::OnAxisXReleased(class UPrimitiveComponent* TouchedComponent)
-{
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisXReleased");
-
-    SetCurrentStatus(EMoveToolStatusEnum::ES_NONE);
-}
-
-void AMoveTool::OnAxisXBeginCursorOver(class UPrimitiveComponent* TouchedComponent)
-{
-    SwitchMouseCursor(EMouseCursor::Type::CardinalCross);
-}
-
-void AMoveTool::OnAxisXEndCursorOver(class UPrimitiveComponent* TouchedComponent)
-{
-    SwitchMouseCursor(EMouseCursor::Type::Default);
-}
-
-void AMoveTool::OnAxisYClicked(class UPrimitiveComponent* TouchedComponent)
-{
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisYClicked");
-    SetCurrentStatus(EMoveToolStatusEnum::ES_AXISY);
-}
-
-void AMoveTool::OnAxisYReleased(class UPrimitiveComponent* TouchedComponent)
-{
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisYReleased");
-
-    SetCurrentStatus(EMoveToolStatusEnum::ES_NONE);
-}
-
-void AMoveTool::OnAxisYBeginCursorOver(class UPrimitiveComponent* TouchedComponent)
-{
-    SwitchMouseCursor(EMouseCursor::Type::CardinalCross);
-}
-
-void AMoveTool::OnAxisYEndCursorOver(class UPrimitiveComponent* TouchedComponent)
-{
-    SwitchMouseCursor(EMouseCursor::Type::Default);
-}
-
-void AMoveTool::OnAxisZClicked(class UPrimitiveComponent* TouchedComponent)
-{
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisZClicked");
-    SetCurrentStatus(EMoveToolStatusEnum::ES_AXISZ);
-}
-
-void AMoveTool::OnAxisZReleased(class UPrimitiveComponent* TouchedComponent)
-{
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisZReleased");
-
-    SetCurrentStatus(EMoveToolStatusEnum::ES_NONE);
-}
-
-void AMoveTool::OnAxisZBeginCursorOver(class UPrimitiveComponent* TouchedComponent)
-{
-    SwitchMouseCursor(EMouseCursor::Type::CardinalCross);
-}
-
-void AMoveTool::OnAxisZEndCursorOver(class UPrimitiveComponent* TouchedComponent)
-{
-    SwitchMouseCursor(EMouseCursor::Type::Default);
-}
-
-void AMoveTool::SetCurrentStatus( EMoveToolStatusEnum Status)
+void AMoveTool::SetCurrentStatus(EMoveToolStatusEnum Status)
 {
     CurrentStatus = Status;
-}
-
-void AMoveTool::SwitchMouseCursor(EMouseCursor::Type type)
-{
-    UGameplayStatics::GetPlayerController(GetWorld(), 0)->CurrentMouseCursor = type;
 }
 
 class AActor* AMoveTool::GetOverLookActor()
@@ -234,4 +164,58 @@ class AActor* AMoveTool::GetOverLookActor()
 EMoveToolStatusEnum AMoveTool::GetCurrentStatus()
 {
     return CurrentStatus;
+}
+
+void AMoveTool::SwitchMouseCursor(EMouseCursor::Type type)
+{
+    UGameplayStatics::GetPlayerController(GetWorld(), 0)->CurrentMouseCursor = type;
+}
+
+void AMoveTool::OnAxisXClicked(class UPrimitiveComponent* TouchedComponent)
+{
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisXClicked");
+    SetCurrentStatus(EMoveToolStatusEnum::ES_AXISX);
+}
+
+void AMoveTool::OnAxisYClicked(class UPrimitiveComponent* TouchedComponent)
+{
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisYClicked");
+    SetCurrentStatus(EMoveToolStatusEnum::ES_AXISY);
+}
+
+void AMoveTool::OnAxisZClicked(class UPrimitiveComponent* TouchedComponent)
+{
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisZClicked");
+    SetCurrentStatus(EMoveToolStatusEnum::ES_AXISZ);
+}
+
+void AMoveTool::OnAxisXYClicked(class UPrimitiveComponent* TouchedComponent)
+{
+    SetCurrentStatus(EMoveToolStatusEnum::ES_AXISXY);
+}
+
+void AMoveTool::OnAxisXZClicked(class UPrimitiveComponent* TouchedComponent)
+{
+    SetCurrentStatus(EMoveToolStatusEnum::ES_AXISXZ);
+}
+
+void AMoveTool::OnAxisYZClicked(class UPrimitiveComponent* TouchedComponent)
+{
+    SetCurrentStatus(EMoveToolStatusEnum::ES_AXISYZ);
+}
+
+void AMoveTool::OnAxisReleased(class UPrimitiveComponent* TouchedComponent)
+{
+    SetCurrentStatus(EMoveToolStatusEnum::ES_NONE);
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisReleased");
+}
+
+void AMoveTool::OnAxisBeginCursorOver(class UPrimitiveComponent* TouchedComponent)
+{
+    SwitchMouseCursor(EMouseCursor::Type::CardinalCross);
+}
+
+void AMoveTool::OnAxisEndCursorOver(class UPrimitiveComponent* TouchedComponent)
+{
+    SwitchMouseCursor(EMouseCursor::Type::Default);
 }

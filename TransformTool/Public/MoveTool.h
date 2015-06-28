@@ -44,6 +44,7 @@ public:
     EMoveToolStatusEnum GetCurrentStatus();
 
 private:
+    #pragma region MoveToolProperty
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Center, meta = (AllowPrivateAccess = "true"))
     class USphereComponent * Center;
@@ -78,6 +79,8 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Status, meta = (AllowPrivateAccess = "true"))
     EMoveToolStatusEnum CurrentStatus;
 
+    #pragma endregion
+
     class UCameraComponent* AttachedCamera;
 
     class AActor* OverlookActor;
@@ -94,43 +97,39 @@ private:
 
     class UStaticMeshComponent* CreateCombinationAxis(FString Name, FVector Location, FVector Scale3D);
 
+    void SetCurrentStatus(EMoveToolStatusEnum Status);
+
+    void SwitchMouseCursor(EMouseCursor::Type type);
+
+    #pragma region AxisEvent
+
     UFUNCTION()
     void OnAxisXClicked(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnAxisXReleased(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnAxisXBeginCursorOver(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnAxisXEndCursorOver(class UPrimitiveComponent* TouchedComponent);
 
     UFUNCTION()
     void OnAxisYClicked(class UPrimitiveComponent* TouchedComponent);
 
     UFUNCTION()
-    void OnAxisYReleased(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnAxisYBeginCursorOver(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnAxisYEndCursorOver(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
     void OnAxisZClicked(class UPrimitiveComponent* TouchedComponent);
 
     UFUNCTION()
-    void OnAxisZReleased(class UPrimitiveComponent* TouchedComponent);
+    void OnAxisXYClicked(class UPrimitiveComponent* TouchedComponent);
 
     UFUNCTION()
-    void OnAxisZBeginCursorOver(class UPrimitiveComponent* TouchedComponent);
+    void OnAxisXZClicked(class UPrimitiveComponent* TouchedComponent);
 
     UFUNCTION()
-    void OnAxisZEndCursorOver(class UPrimitiveComponent* TouchedComponent);
+    void OnAxisYZClicked(class UPrimitiveComponent* TouchedComponent);
 
-    void SetCurrentStatus(EMoveToolStatusEnum Status);
+    UFUNCTION()
+    void OnAxisReleased(class UPrimitiveComponent* TouchedComponent);
 
-    void SwitchMouseCursor(EMouseCursor::Type type);
+    UFUNCTION()
+    void OnAxisBeginCursorOver(class UPrimitiveComponent* TouchedComponent);
+
+    UFUNCTION()
+    void OnAxisEndCursorOver(class UPrimitiveComponent* TouchedComponent);
+
+    #pragma endregion
+
 };
