@@ -39,7 +39,7 @@ void AMoveTool::Tick( float DeltaTime )
     Super::Tick( DeltaTime );
 }
 
-void AMoveTool::BindingTool(class UCameraComponent* Camera)
+void AMoveTool::AttachToCamera(class UCameraComponent* Camera)
 {
     AttachedCamera = Camera;
 }

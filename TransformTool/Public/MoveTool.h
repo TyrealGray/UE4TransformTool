@@ -33,11 +33,11 @@ public:
     // Called every frame
     virtual void Tick( float DeltaSeconds ) override;
 
-    void BindingTool( class UCameraComponent* Camera);
+    void UpdateMoveToolPosition();
+
+    void AttachToCamera( class UCameraComponent* Camera);
 
     void SetOverlookActor( class AActor* Actor);
-
-    void UpdateMoveToolPosition();
 
     class AActor* GetOverLookActor();
 
