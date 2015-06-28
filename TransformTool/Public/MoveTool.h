@@ -41,6 +41,8 @@ public:
 
     class AActor* GetOverLookActor();
 
+    void SwitchMouseCursor(EMouseCursor::Type type);
+
     EMoveToolStatusEnum GetCurrentStatus();
 
 private:
@@ -98,8 +100,6 @@ private:
     class UStaticMeshComponent* CreateCombinationAxis(FString Name, FVector Location, FVector Scale3D);
 
     void SetCurrentStatus(EMoveToolStatusEnum Status);
-
-    void SwitchMouseCursor(EMouseCursor::Type type);
 
     #pragma region AxisEvent
 
