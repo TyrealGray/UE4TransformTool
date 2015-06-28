@@ -191,16 +191,19 @@ void AMoveTool::OnAxisZClicked(class UPrimitiveComponent* TouchedComponent)
 
 void AMoveTool::OnAxisXYClicked(class UPrimitiveComponent* TouchedComponent)
 {
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisXYClicked");
     SetCurrentStatus(EMoveToolStatusEnum::ES_AXISXY);
 }
 
 void AMoveTool::OnAxisXZClicked(class UPrimitiveComponent* TouchedComponent)
 {
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisXZClicked");
     SetCurrentStatus(EMoveToolStatusEnum::ES_AXISXZ);
 }
 
 void AMoveTool::OnAxisYZClicked(class UPrimitiveComponent* TouchedComponent)
 {
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisYZClicked");
     SetCurrentStatus(EMoveToolStatusEnum::ES_AXISYZ);
 }
 
