@@ -5,6 +5,19 @@
 #include "GameFramework/Actor.h"
 #include "MoveTool.generated.h"
 
+UENUM(BlueprintType)
+enum class EMoveToolStatusEnum : uint8
+{
+    ES_NONE UMETA(DisplayName = "None"),
+    ES_AXISX 	UMETA(DisplayName = "AxisX"),
+    ES_AXISY	UMETA(DisplayName = "AxisY"),
+    ES_AXISZ	UMETA(DisplayName = "AxisZ"),
+    ES_AXISXY	UMETA(DisplayName = "AxisXY"),
+    ES_AXISXZ	UMETA(DisplayName = "AxisXZ"),
+    ES_AXISYZ	UMETA(DisplayName = "AxisYZ")
+};
+
+
 UCLASS()
 class TRANSFORMTOOL_API AMoveTool : public AActor
 {
@@ -27,6 +40,8 @@ public:
     void UpdateMoveToolPosition();
 
     class AActor* GetOverLookActor();
+
+    EMoveToolStatusEnum GetCurrentStatus();
 
 private:
 
@@ -59,6 +74,9 @@ private:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
     class UBoxComponent * BoxZ;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Status, meta = (AllowPrivateAccess = "true"))
+    EMoveToolStatusEnum CurrentStatus;
 
     class UCameraComponent* AttachedCamera;
 
@@ -95,6 +113,12 @@ private:
     void OnAxisYReleased(class UPrimitiveComponent* TouchedComponent);
 
     UFUNCTION()
+    void OnAxisYBeginCursorOver(class UPrimitiveComponent* TouchedComponent);
+
+    UFUNCTION()
+    void OnAxisYEndCursorOver(class UPrimitiveComponent* TouchedComponent);
+
+    UFUNCTION()
     void OnAxisZClicked(class UPrimitiveComponent* TouchedComponent);
 
     UFUNCTION()
@@ -106,5 +130,7 @@ private:
     UFUNCTION()
     void OnAxisZEndCursorOver(class UPrimitiveComponent* TouchedComponent);
 
-    void ShowCardinalCrossMouse();
+    void SetCurrentStatus(EMoveToolStatusEnum Status);
+
+    void SwitchMouseCursor(EMouseCursor::Type type);
 };

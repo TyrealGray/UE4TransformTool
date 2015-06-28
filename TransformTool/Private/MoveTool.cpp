@@ -10,6 +10,8 @@ AMoveTool::AMoveTool()
     // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
+    CurrentStatus = EMoveToolStatusEnum::ES_NONE;
+
     AttachedCamera = nullptr;
 
     OverlookActor = nullptr;
@@ -74,9 +76,13 @@ void AMoveTool::InitBox()
 {
     BoxX = CreateBox("BoxX", FVector(4.5f, 0.0f, 0.0f), FVector(0.1f, 0.015625f, 0.015625f));
     BoxX->OnClicked.AddDynamic(this, &AMoveTool::OnAxisXClicked);
+    BoxX->OnBeginCursorOver.AddDynamic(this, &AMoveTool::OnAxisXBeginCursorOver);
+    BoxX->OnEndCursorOver.AddDynamic(this, &AMoveTool::OnAxisXEndCursorOver);
 
     BoxY = CreateBox("BoxY", FVector(0.0f, 4.5f, 0.0f), FVector(0.015625f, 0.1f, 0.015625f));
     BoxY->OnClicked.AddDynamic(this, &AMoveTool::OnAxisYClicked);
+    BoxY->OnBeginCursorOver.AddDynamic(this, &AMoveTool::OnAxisYBeginCursorOver);
+    BoxY->OnEndCursorOver.AddDynamic(this, &AMoveTool::OnAxisYEndCursorOver);
 
     BoxZ = CreateBox("BoxZ", FVector(0.0f, 0.0f, 4.5f), FVector(0.015625f, 0.015625f, 0.1f));
     BoxZ->OnClicked.AddDynamic(this, &AMoveTool::OnAxisZClicked);
@@ -144,60 +150,88 @@ void AMoveTool::UpdateMoveToolPosition()
 void AMoveTool::OnAxisXClicked(class UPrimitiveComponent* TouchedComponent)
 {
     GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisXClicked");
+    SetCurrentStatus(EMoveToolStatusEnum::ES_AXISX);
 }
 
 void AMoveTool::OnAxisXReleased(class UPrimitiveComponent* TouchedComponent)
 {
     GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisXReleased");
+
+    SetCurrentStatus(EMoveToolStatusEnum::ES_NONE);
 }
 
 void AMoveTool::OnAxisXBeginCursorOver(class UPrimitiveComponent* TouchedComponent)
 {
-    ShowCardinalCrossMouse();
+    SwitchMouseCursor(EMouseCursor::Type::CardinalCross);
 }
 
 void AMoveTool::OnAxisXEndCursorOver(class UPrimitiveComponent* TouchedComponent)
 {
-
+    SwitchMouseCursor(EMouseCursor::Type::Default);
 }
 
 void AMoveTool::OnAxisYClicked(class UPrimitiveComponent* TouchedComponent)
 {
     GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisYClicked");
+    SetCurrentStatus(EMoveToolStatusEnum::ES_AXISY);
 }
 
 void AMoveTool::OnAxisYReleased(class UPrimitiveComponent* TouchedComponent)
 {
     GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisYReleased");
+
+    SetCurrentStatus(EMoveToolStatusEnum::ES_NONE);
+}
+
+void AMoveTool::OnAxisYBeginCursorOver(class UPrimitiveComponent* TouchedComponent)
+{
+    SwitchMouseCursor(EMouseCursor::Type::CardinalCross);
+}
+
+void AMoveTool::OnAxisYEndCursorOver(class UPrimitiveComponent* TouchedComponent)
+{
+    SwitchMouseCursor(EMouseCursor::Type::Default);
 }
 
 void AMoveTool::OnAxisZClicked(class UPrimitiveComponent* TouchedComponent)
 {
     GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisZClicked");
+    SetCurrentStatus(EMoveToolStatusEnum::ES_AXISZ);
 }
 
 void AMoveTool::OnAxisZReleased(class UPrimitiveComponent* TouchedComponent)
 {
     GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisZReleased");
+
+    SetCurrentStatus(EMoveToolStatusEnum::ES_NONE);
 }
 
 void AMoveTool::OnAxisZBeginCursorOver(class UPrimitiveComponent* TouchedComponent)
 {
-    ShowCardinalCrossMouse();
+    SwitchMouseCursor(EMouseCursor::Type::CardinalCross);
 }
 
 void AMoveTool::OnAxisZEndCursorOver(class UPrimitiveComponent* TouchedComponent)
 {
-    UGameplayStatics::GetPlayerController(GetWorld(), 0)->CurrentMouseCursor = EMouseCursor::Type::Default;
+    SwitchMouseCursor(EMouseCursor::Type::Default);
 }
 
-
-void AMoveTool::ShowCardinalCrossMouse()
+void AMoveTool::SetCurrentStatus( EMoveToolStatusEnum Status)
 {
-    UGameplayStatics::GetPlayerController(GetWorld(), 0)->CurrentMouseCursor = EMouseCursor::Type::CardinalCross;
+    CurrentStatus = Status;
+}
+
+void AMoveTool::SwitchMouseCursor(EMouseCursor::Type type)
+{
+    UGameplayStatics::GetPlayerController(GetWorld(), 0)->CurrentMouseCursor = type;
 }
 
 class AActor* AMoveTool::GetOverLookActor()
 {
     return OverlookActor;
+}
+
+EMoveToolStatusEnum AMoveTool::GetCurrentStatus()
+{
+    return CurrentStatus;
 }
