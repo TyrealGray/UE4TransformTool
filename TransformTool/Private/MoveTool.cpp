@@ -49,25 +49,21 @@ void AMoveTool::SetOverlookActor(class AActor* Actor)
 
 void AMoveTool::InitAxis()
 {
-    AxisX = CreateAxis("AxisX");
-    AxisX->ArrowColor = FColor(0xFF, 0x00, 0x00, 0xFF);
-    AxisX->RelativeRotation = FRotator(0.0f, 0.0f, 90.0f);
+    AxisX = CreateAxis("AxisX", FColor(0xFF, 0x00, 0x00, 0xFF), FRotator(0.0f, 0.0f, 90.0f));
 
-    AxisY = CreateAxis("AxisY");
-    AxisY->ArrowColor = FColor(0x00, 0xFF, 0x00, 0xFF);
-    AxisY->RelativeRotation = FRotator(0.0f, 90.0f, 0.0f);
+    AxisY = CreateAxis("AxisY", FColor(0x00, 0xFF, 0x00, 0xFF), FRotator(0.0f, 90.0f, 0.0f));
 
-    AxisZ = CreateAxis("AxisZ");
-    AxisZ->ArrowColor = FColor(0x00, 0x00, 0xFF, 0xFF);
-    AxisZ->RelativeRotation = FRotator(90.0f, 0.0f, 0.0f);
+    AxisZ = CreateAxis("AxisZ", FColor(0x00, 0x00, 0xFF, 0xFF), FRotator(90.0f, 0.0f, 0.0f));
 }
 
-class UArrowComponent* AMoveTool::CreateAxis(FString name)
+class UArrowComponent* AMoveTool::CreateAxis(FString Name, FColor Color, FRotator Rotation)
 {
-    UArrowComponent* pAxis = CreateDefaultSubobject<UArrowComponent>(*name);
+    UArrowComponent* pAxis = CreateDefaultSubobject<UArrowComponent>(*Name);
 
     pAxis->ArrowSize = 0.1f;
     pAxis->bHiddenInGame = false;
+    pAxis->ArrowColor = Color;
+    pAxis->RelativeRotation = Rotation;
 
     pAxis->AttachTo(Center);
 
@@ -76,29 +72,26 @@ class UArrowComponent* AMoveTool::CreateAxis(FString name)
 
 void AMoveTool::InitBox()
 {
-    BoxX = CreateBox("BoxX");
-    BoxX->RelativeLocation = FVector(4.5f, 0.0f, 0.0f);
-    BoxX->RelativeScale3D = FVector(0.1f, 0.015625f, 0.015625f);
-
+    BoxX = CreateBox("BoxX", FVector(4.5f, 0.0f, 0.0f), FVector(0.1f, 0.015625f, 0.015625f));
     BoxX->OnClicked.AddDynamic(this, &AMoveTool::OnAxisXClicked);
 
-    BoxY = CreateBox("BoxY");
-    BoxY->RelativeLocation = FVector(0.0f, 4.5f, 0.0f);
-    BoxY->RelativeScale3D = FVector(0.015625f, 0.1f, 0.015625f);
-
+    BoxY = CreateBox("BoxY", FVector(0.0f, 4.5f, 0.0f), FVector(0.015625f, 0.1f, 0.015625f));
     BoxY->OnClicked.AddDynamic(this, &AMoveTool::OnAxisYClicked);
 
-    BoxZ = CreateBox("BoxZ");
-    BoxZ->RelativeLocation = FVector(0.0f, 0.0f, 4.5f);
-    BoxZ->RelativeScale3D = FVector(0.015625f, 0.015625f, 0.1f);
-
+    BoxZ = CreateBox("BoxZ", FVector(0.0f, 0.0f, 4.5f), FVector(0.015625f, 0.015625f, 0.1f));
     BoxZ->OnClicked.AddDynamic(this, &AMoveTool::OnAxisZClicked);
+    BoxZ->OnBeginCursorOver.AddDynamic(this, &AMoveTool::OnAxisZBeginCursorOver);
+    BoxZ->OnEndCursorOver.AddDynamic(this, &AMoveTool::OnAxisZEndCursorOver);
 }
 
-class UBoxComponent* AMoveTool::CreateBox(FString name)
+class UBoxComponent* AMoveTool::CreateBox(FString Name, FVector Location, FVector Scale3D)
 {
-    UBoxComponent* pBox = CreateDefaultSubobject<UBoxComponent>(*name);
+    UBoxComponent* pBox = CreateDefaultSubobject<UBoxComponent>(*Name);
     pBox->SetCollisionProfileName(FName(TEXT("UI")));
+
+    pBox->RelativeLocation = Location;
+    pBox->RelativeScale3D = Scale3D;
+
     pBox->AttachTo(Center);
 
     return pBox;
@@ -106,35 +99,30 @@ class UBoxComponent* AMoveTool::CreateBox(FString name)
 
 void AMoveTool::InitCombinationAxis()
 {
-    AxisXZ = CreateCombinationAxis("AxisX&Z");
-    AxisYZ = CreateCombinationAxis("AxisY&Z");
-    AxisXY = CreateCombinationAxis("AxisX&Y");
-
-    AxisXZ->RelativeLocation = FVector(0.7f, 0.0f, 0.7f);
-    AxisXZ->RelativeScale3D = FVector(0.009765f, 0.000244f, 0.009765f);
-
-    AxisYZ->RelativeLocation = FVector(0.0f, 0.7f, 0.7f);
-    AxisYZ->RelativeScale3D = FVector(0.000244f, 0.009765f, 0.009765f);
-
-    AxisXY->RelativeLocation = FVector(0.7f, 0.7f, 0.0f);
-    AxisXY->RelativeScale3D = FVector(0.009765f, 0.009765f, 0.000244f);
+    AxisXZ = CreateCombinationAxis("AxisX&Z", FVector(1.4f, 0.0f, 1.4f), FVector(0.024f, 0.000244f, 0.024f));
+    AxisYZ = CreateCombinationAxis("AxisY&Z", FVector(0.0f, 1.4f, 1.4f), FVector(0.000244f, 0.024f, 0.024f));
+    AxisXY = CreateCombinationAxis("AxisX&Y", FVector(1.4f, 1.4f, 0.0f), FVector(0.024f, 0.024f, 0.000244f));
 }
 
-class UStaticMeshComponent* AMoveTool::CreateCombinationAxis(FString name)
+class UStaticMeshComponent* AMoveTool::CreateCombinationAxis(FString Name, FVector Location, FVector Scale3D)
 {
     static ConstructorHelpers::FObjectFinder<UStaticMesh> MehFinder(TEXT("/Engine/BasicShapes/Cube"));
 
     static ConstructorHelpers::FObjectFinder<UMaterial> MatFinder(TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
 
-    UStaticMeshComponent* pCombinationAxis = CreateDefaultSubobject<UStaticMeshComponent>(*name);
+    UStaticMeshComponent* pCombinationAxis = CreateDefaultSubobject<UStaticMeshComponent>(*Name);
 
     pCombinationAxis->StaticMesh = MehFinder.Object;
 
-    //pCombinationAxis->SetMaterial(0, MatFinder.Object);
-
-    pCombinationAxis->AttachTo(Center);
+    pCombinationAxis->SetMaterial(0, MatFinder.Object);
 
     pCombinationAxis->SetCollisionProfileName(FName(TEXT("UI")));
+
+    pCombinationAxis->RelativeLocation = Location;
+
+    pCombinationAxis->RelativeScale3D = Scale3D;
+
+    pCombinationAxis->AttachTo(Center);
 
     return pCombinationAxis;
 }
@@ -149,36 +137,67 @@ void AMoveTool::UpdateMoveToolPosition()
     FRotator ViewRotation = AttachedCamera->GetComponentRotation();
     FVector ViewLocation = AttachedCamera->GetComponentLocation();
 
-    FVector moveToolLocation = (OverlookActor->GetActorLocation() - ViewLocation).Rotation().RotateVector(FVector(72.0f, 0.0f, 0.0f));
+    FVector moveToolLocation = (OverlookActor->GetActorLocation() - ViewLocation).Rotation().RotateVector(FVector(61.0f, 0.0f, 0.0f));
     SetActorLocation(ViewLocation + moveToolLocation);
 }
 
 void AMoveTool::OnAxisXClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAxisXClicked");
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisXClicked");
 }
 
 void AMoveTool::OnAxisXReleased(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAxisXReleased");
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisXReleased");
+}
+
+void AMoveTool::OnAxisXBeginCursorOver(class UPrimitiveComponent* TouchedComponent)
+{
+    ShowCardinalCrossMouse();
+}
+
+void AMoveTool::OnAxisXEndCursorOver(class UPrimitiveComponent* TouchedComponent)
+{
+
 }
 
 void AMoveTool::OnAxisYClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAxisYClicked");
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisYClicked");
 }
 
 void AMoveTool::OnAxisYReleased(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAxisYReleased");
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisYReleased");
 }
 
 void AMoveTool::OnAxisZClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAxisZClicked");
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisZClicked");
 }
 
 void AMoveTool::OnAxisZReleased(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "OnAxisZReleased");
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisZReleased");
+}
+
+void AMoveTool::OnAxisZBeginCursorOver(class UPrimitiveComponent* TouchedComponent)
+{
+    ShowCardinalCrossMouse();
+}
+
+void AMoveTool::OnAxisZEndCursorOver(class UPrimitiveComponent* TouchedComponent)
+{
+    UGameplayStatics::GetPlayerController(GetWorld(), 0)->CurrentMouseCursor = EMouseCursor::Type::Default;
+}
+
+
+void AMoveTool::ShowCardinalCrossMouse()
+{
+    UGameplayStatics::GetPlayerController(GetWorld(), 0)->CurrentMouseCursor = EMouseCursor::Type::CardinalCross;
+}
+
+class AActor* AMoveTool::GetOverLookActor()
+{
+    return OverlookActor;
 }

@@ -26,6 +26,8 @@ public:
 
     void UpdateMoveToolPosition();
 
+    class AActor* GetOverLookActor();
+
 private:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Center, meta = (AllowPrivateAccess = "true"))
@@ -68,17 +70,23 @@ private:
 
     void InitCombinationAxis();
 
-    class UArrowComponent* CreateAxis(FString name);
+    class UArrowComponent* CreateAxis(FString Name, FColor Color, FRotator Rotation);
 
-    class UBoxComponent* CreateBox(FString name);
+    class UBoxComponent* CreateBox(FString Name, FVector Location, FVector Scale3D);
 
-    class UStaticMeshComponent* CreateCombinationAxis(FString name);
+    class UStaticMeshComponent* CreateCombinationAxis(FString Name, FVector Location, FVector Scale3D);
 
     UFUNCTION()
     void OnAxisXClicked(class UPrimitiveComponent* TouchedComponent);
 
     UFUNCTION()
     void OnAxisXReleased(class UPrimitiveComponent* TouchedComponent);
+
+    UFUNCTION()
+    void OnAxisXBeginCursorOver(class UPrimitiveComponent* TouchedComponent);
+
+    UFUNCTION()
+    void OnAxisXEndCursorOver(class UPrimitiveComponent* TouchedComponent);
 
     UFUNCTION()
     void OnAxisYClicked(class UPrimitiveComponent* TouchedComponent);
@@ -91,4 +99,12 @@ private:
 
     UFUNCTION()
     void OnAxisZReleased(class UPrimitiveComponent* TouchedComponent);
+
+    UFUNCTION()
+    void OnAxisZBeginCursorOver(class UPrimitiveComponent* TouchedComponent);
+
+    UFUNCTION()
+    void OnAxisZEndCursorOver(class UPrimitiveComponent* TouchedComponent);
+
+    void ShowCardinalCrossMouse();
 };
