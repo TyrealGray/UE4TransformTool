@@ -10,13 +10,13 @@ YourMoveTool->AttachToCamera(YourCharacterCameraComponent);
 
 #EMoveToolStatusEnum
 class `EMoveToolStatusEnum` is a enum that can tell you which axis clicked
->ES_NONE UMETA(DisplayName = "None")
-ES_AXISX 	UMETA(DisplayName = "AxisX")
-ES_AXISY	UMETA(DisplayName = "AxisY")
-ES_AXISZ	UMETA(DisplayName = "AxisZ")
-ES_AXISXY	UMETA(DisplayName = "AxisXY")
-ES_AXISXZ	UMETA(DisplayName = "AxisXZ")
-ES_AXISYZ	UMETA(DisplayName = "AxisYZ")
+>ES_NONE `None`
+>ES_AXISX `AxisX`
+>ES_AXISY `AxisY`
+>ES_AXISZ `AxisZ`
+>ES_AXISXY `AxisXY`
+>ES_AXISXZ `AxisXZ`
+>ES_AXISYZ `AxisYZ`
 
 you can use `AMoveTool::GetCurrentStatus()` function to get current status
 
