@@ -46,7 +46,7 @@ void AMoveTool::AttachToCamera(class UCameraComponent* Camera)
 
 void AMoveTool::SetOverlookActor(class AActor* Actor)
 {
-    OverlookActor = Actor;
+    OverlookActor = (this == Actor) ? OverlookActor : Actor;
 }
 
 void AMoveTool::InitAxis()
