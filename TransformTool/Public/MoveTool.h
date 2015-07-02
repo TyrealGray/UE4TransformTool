@@ -33,8 +33,6 @@ public:
     // Called every frame
     virtual void Tick( float DeltaSeconds ) override;
 
-    void UpdateMoveToolPosition();
-
     void AttachToCamera( class UCameraComponent* Camera);
 
     void SetOverlookActor( class AActor* Actor);
@@ -100,6 +98,8 @@ private:
     class UStaticMeshComponent* CreateCombinationAxis(FString Name, FVector Location, FVector Scale3D);
 
     void SwitchMouseCursor(EMouseCursor::Type type);
+		
+	void UpdateMoveToolPosition();
 
     #pragma region AxisEvent
 

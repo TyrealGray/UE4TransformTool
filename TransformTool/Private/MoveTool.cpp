@@ -9,6 +9,7 @@ AMoveTool::AMoveTool()
 {
     // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.TickGroup = ETickingGroup::TG_PostPhysics;
 
     CurrentStatus = EMoveToolStatusEnum::ES_NONE;
 
@@ -37,6 +38,8 @@ void AMoveTool::BeginPlay()
 void AMoveTool::Tick( float DeltaTime )
 {
     Super::Tick( DeltaTime );
+	
+	UpdateMoveToolPosition();
 }
 
 void AMoveTool::AttachToCamera(class UCameraComponent* Camera)
