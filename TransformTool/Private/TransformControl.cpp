@@ -349,7 +349,6 @@ void ATransformControl::OnMoveToolYClicked(class UPrimitiveComponent* TouchedCom
 
 void ATransformControl::OnMoveToolZClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, TouchedComponent->GetName());
     SetCurrentStatus(EToolStatusEnum::ES_AXISZ_MOVE);
     SetAxisCursorOverColor(TouchedComponent->GetName());
 }
@@ -363,14 +362,12 @@ void ATransformControl::OnMoveToolXYClicked(class UPrimitiveComponent* TouchedCo
 
 void ATransformControl::OnMoveToolXZClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnMoveToolAxisXZClicked");
     SetCurrentStatus(EToolStatusEnum::ES_AXISXZ_MOVE);
     SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnMoveToolYZClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnMoveToolAxisYZClicked");
     SetCurrentStatus(EToolStatusEnum::ES_AXISYZ_MOVE);
     SetAxisCursorOverColor(TouchedComponent->GetName());
 }
@@ -378,63 +375,54 @@ void ATransformControl::OnMoveToolYZClicked(class UPrimitiveComponent* TouchedCo
 
 void ATransformControl::OnRotateToolPitchClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnRotateToolPitchClicked");
     SetCurrentStatus(EToolStatusEnum::ES_PITCH);
     SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnRotateToolRollClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnRotateToolRollClicked");
     SetCurrentStatus(EToolStatusEnum::ES_ROLL);
     SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnRotateToolYawClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnRotateToolYawClicked");
     SetCurrentStatus(EToolStatusEnum::ES_YAW);
     SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnScaleToolXClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolXClicked");
     SetCurrentStatus(EToolStatusEnum::ES_AXISX_SCALE);
     SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnScaleToolYClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolYClicked");
     SetCurrentStatus(EToolStatusEnum::ES_AXISY_SCALE);
     SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnScaleToolZClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolZClicked");
     SetCurrentStatus(EToolStatusEnum::ES_AXISZ_SCALE);
     SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnScaleToolXYClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolXYClicked");
     SetCurrentStatus(EToolStatusEnum::ES_AXISXY_SCALE);
     SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnScaleToolXZClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolXZClicked");
     SetCurrentStatus(EToolStatusEnum::ES_AXISXZ_SCALE);
     SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnScaleToolYZClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolYZClicked");
     SetCurrentStatus(EToolStatusEnum::ES_AXISYZ_SCALE);
     SetAxisCursorOverColor(TouchedComponent->GetName());
 }
