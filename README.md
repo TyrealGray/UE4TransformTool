@@ -1,16 +1,20 @@
 # UE4TransformTool
-An UE4.8 Actor class which simulate the UE4Editor TransformTool
+An UE4 Actor class which simulate the UE4Editor TransformTool
 # To Begin
 > Spawn tool in world,and bind to your character's camera component
 >```C++
-YourMoveTool = GetWorld()->SpawnActor<AMoveTool>(AMoveTool::StaticClass());
-YourMoveTool->AttachToCamera(YourCharacterCameraComponent);
+YourTransformTool = GetWorld()->SpawnActor<ATransformControl>(ATransformControl::StaticClass());
+YourTransformTool->AttachToCamera(YourCharacterCameraComponent);
 ```
-> Then use `AMoveTool::SetOverlookActor(class AActor* Actor)` function to show tool on the actor
+> Then use `ATransformControl::SetOverlookActor(class AActor* Actor)` function to show tool on the actor
 
-#EMoveToolStatusEnum
-> class `EMoveToolStatusEnum` is a enum that can tell you which axis clicked,
-> you can use `AMoveTool::GetCurrentStatus()` function to get current status
+#EToolStatusEnum
+> class `EToolStatusEnum` is a enum that can tell you which axis clicked,
+> you can use `ATransformControl::GetCurrentStatus()` function to get current status
+
+#EToolModeEnum
+> class `EToolModeEnum` is a enum that can tell you which mode TransformTool is using,
+> you can use `ATransformControl::AutoSwitchNextMode()` function to switch mode
 
 # License
 MIT
