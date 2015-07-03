@@ -97,15 +97,26 @@ void ATransformControl::InitAxis()
 
 class UStaticMeshComponent* ATransformControl::CreateAxis(FString Name, FString Group, FColor Color)
 {
+    UMaterial* Mat = LoadObject<UMaterial>(NULL, TEXT("/Game/TransformTool/GizmoMaterial.GizmoMaterial"));
+
     UStaticMeshComponent* Axis = CreateDefaultSubobject<UStaticMeshComponent>(*(Group + Name));
 
     Axis->StaticMesh = LoadObject<UStaticMesh>(NULL, *FString("/Game/TransformTool/" + Group + "/" + Name + "." + Name));
-
-    UMaterial* Mat = LoadObject<UMaterial>(NULL, TEXT("/Game/TransformTool/GizmoMaterial.GizmoMaterial"));
+    Axis->bCastDynamicShadow = false;
 
     Axis->SetMaterial(0, Mat);
+
     UMaterialInstanceDynamic* MaterialInstanceDynamic = Axis->CreateAndSetMaterialInstanceDynamic(0);
     MaterialInstanceDynamic->SetVectorParameterValue(FName(TEXT("GizmoColor")), Color);
+
+    TArray<UMaterialInstanceDynamic*> MaterialInstanceArray;
+    MaterialInstanceArray.Add(MaterialInstanceDynamic);
+    MaterialInstanceMap.Add((Group + Name), MaterialInstanceArray);
+
+    TArray<FColor> MaterialColorArray;
+    MaterialColorArray.Add(Color);
+    MaterialColorMap.Add((Group + Name), MaterialColorArray);
+
     Axis->SetCollisionProfileName(FName("UI"));
 
     Axis->OnReleased.AddDynamic(this, &ATransformControl::OnAxisReleased);
@@ -144,16 +155,29 @@ class UStaticMeshComponent* ATransformControl::CreateCombinationAxis(FString Nam
 
     CombinationAxis->StaticMesh = LoadObject<UStaticMesh>(NULL, *FString("/Game/TransformTool/" + Group + "/" + Name + "." + Name));
     CombinationAxis->SetCollisionProfileName(FName("UI"));
+    CombinationAxis->bCastDynamicShadow = false;
 
     UMaterial* Mat = LoadObject<UMaterial>(NULL, TEXT("/Game/TransformTool/GizmoMaterial.GizmoMaterial"));
     CombinationAxis->SetMaterial(0, Mat);
     CombinationAxis->SetMaterial(1, Mat);
 
-    UMaterialInstanceDynamic* MaterialInstanceDynamic = CombinationAxis->CreateAndSetMaterialInstanceDynamic(0);
-    MaterialInstanceDynamic->SetVectorParameterValue(FName(TEXT("GizmoColor")), Color1);
+    UMaterialInstanceDynamic* MaterialInstanceDynamic1 = CombinationAxis->CreateAndSetMaterialInstanceDynamic(0);
+    MaterialInstanceDynamic1->SetVectorParameterValue(FName(TEXT("GizmoColor")), Color1);
 
-    MaterialInstanceDynamic = CombinationAxis->CreateAndSetMaterialInstanceDynamic(1);
-    MaterialInstanceDynamic->SetVectorParameterValue(FName(TEXT("GizmoColor")), Color2);
+    UMaterialInstanceDynamic* MaterialInstanceDynamic2 = CombinationAxis->CreateAndSetMaterialInstanceDynamic(1);
+    MaterialInstanceDynamic2->SetVectorParameterValue(FName(TEXT("GizmoColor")), Color2);
+
+    TArray<UMaterialInstanceDynamic*> MaterialInstanceArray;
+    MaterialInstanceArray.Add(MaterialInstanceDynamic1);
+    MaterialInstanceArray.Add(MaterialInstanceDynamic2);
+
+    MaterialInstanceMap.Add((Group + Name), MaterialInstanceArray);
+
+    TArray<FColor> MaterialColorArray;
+    MaterialColorArray.Add(Color1);
+    MaterialColorArray.Add(Color2);
+
+    MaterialColorMap.Add((Group + Name), MaterialColorArray);
 
     CombinationAxis->OnReleased.AddDynamic(this, &ATransformControl::OnAxisReleased);
     CombinationAxis->OnBeginCursorOver.AddDynamic(this, &ATransformControl::OnAxisBeginCursorOver);
@@ -253,9 +277,10 @@ void ATransformControl::SwitchControl(EToolModeEnum mode)
 
 void ATransformControl::SetAxisMeshComponentEnable(class UStaticMeshComponent* MeshComponent, bool bEnable)
 {
-    MeshComponent->SetVisibility(bEnable);
-    bEnable ? MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly) : MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     MeshComponent->SetCollisionProfileName(FName("UI"));
+    bEnable ? MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly) : MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    MeshComponent->SetVisibility(bEnable);
+
 }
 
 void ATransformControl::HideAllMeshComponents()
@@ -279,17 +304,30 @@ void ATransformControl::HideAllMeshComponents()
 void ATransformControl::OnAxisReleased(class UPrimitiveComponent* TouchedComponent)
 {
     SetCurrentStatus(EToolStatusEnum::ES_NONE);
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnAxisReleased");
 }
 
 void ATransformControl::OnAxisBeginCursorOver(class UPrimitiveComponent* TouchedComponent)
 {
     SwitchMouseCursor(EMouseCursor::Type::CardinalCross);
+
+    if (GetCurrentStatus() != EToolStatusEnum::ES_NONE)
+    {
+        return;
+    }
+
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnAxisEndCursorOver(class UPrimitiveComponent* TouchedComponent)
 {
     SwitchMouseCursor(EMouseCursor::Type::Default);
+
+    if (GetCurrentStatus() != EToolStatusEnum::ES_NONE)
+    {
+        return;
+    }
+
+    RecoverAxisColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::SwitchMouseCursor(EMouseCursor::Type type)
@@ -299,91 +337,127 @@ void ATransformControl::SwitchMouseCursor(EMouseCursor::Type type)
 
 void ATransformControl::OnMoveTooXClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnMoveToolAxisXClicked");
-    SetCurrentStatus(EToolStatusEnum::ES_AXISXMOVE);
+    SetCurrentStatus(EToolStatusEnum::ES_AXISX_MOVE);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnMoveToolYClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnMoveToolAxisYClicked");
-    SetCurrentStatus(EToolStatusEnum::ES_AXISYMOVE);
+    SetCurrentStatus(EToolStatusEnum::ES_AXISY_MOVE);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnMoveToolZClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnMoveToolAxisZClicked");
-    SetCurrentStatus(EToolStatusEnum::ES_AXISZMOVE);
+    GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, TouchedComponent->GetName());
+    SetCurrentStatus(EToolStatusEnum::ES_AXISZ_MOVE);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnMoveToolXYClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnMoveToolAxisXYClicked");
-    SetCurrentStatus(EToolStatusEnum::ES_AXISXYMOVE);
+
+    SetCurrentStatus(EToolStatusEnum::ES_AXISXY_MOVE);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnMoveToolXZClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnMoveToolAxisXZClicked");
-    SetCurrentStatus(EToolStatusEnum::ES_AXISXZMOVE);
+    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnMoveToolAxisXZClicked");
+    SetCurrentStatus(EToolStatusEnum::ES_AXISXZ_MOVE);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnMoveToolYZClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnMoveToolAxisYZClicked");
-    SetCurrentStatus(EToolStatusEnum::ES_AXISYZMOVE);
+    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnMoveToolAxisYZClicked");
+    SetCurrentStatus(EToolStatusEnum::ES_AXISYZ_MOVE);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 
 void ATransformControl::OnRotateToolPitchClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnRotateToolPitchClicked");
+    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnRotateToolPitchClicked");
     SetCurrentStatus(EToolStatusEnum::ES_PITCH);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnRotateToolRollClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnRotateToolRollClicked");
+    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnRotateToolRollClicked");
     SetCurrentStatus(EToolStatusEnum::ES_ROLL);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnRotateToolYawClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnRotateToolYawClicked");
+    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnRotateToolYawClicked");
     SetCurrentStatus(EToolStatusEnum::ES_YAW);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnScaleToolXClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolXClicked");
-    SetCurrentStatus(EToolStatusEnum::ES_AXISXSCALE);
+    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolXClicked");
+    SetCurrentStatus(EToolStatusEnum::ES_AXISX_SCALE);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnScaleToolYClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolYClicked");
-    SetCurrentStatus(EToolStatusEnum::ES_AXISYSCALE);
+    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolYClicked");
+    SetCurrentStatus(EToolStatusEnum::ES_AXISY_SCALE);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnScaleToolZClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolZClicked");
-    SetCurrentStatus(EToolStatusEnum::ES_AXISZSCALE);
+    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolZClicked");
+    SetCurrentStatus(EToolStatusEnum::ES_AXISZ_SCALE);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnScaleToolXYClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolXYClicked");
-    SetCurrentStatus(EToolStatusEnum::ES_AXISXYSCALE);
+    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolXYClicked");
+    SetCurrentStatus(EToolStatusEnum::ES_AXISXY_SCALE);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnScaleToolXZClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolXZClicked");
-    SetCurrentStatus(EToolStatusEnum::ES_AXISXZSCALE);
+    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolXZClicked");
+    SetCurrentStatus(EToolStatusEnum::ES_AXISXZ_SCALE);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
 }
 
 void ATransformControl::OnScaleToolYZClicked(class UPrimitiveComponent* TouchedComponent)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolYZClicked");
-    SetCurrentStatus(EToolStatusEnum::ES_AXISYZCALE);
+    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "OnScaleToolYZClicked");
+    SetCurrentStatus(EToolStatusEnum::ES_AXISYZ_SCALE);
+    SetAxisCursorOverColor(TouchedComponent->GetName());
+}
+
+void ATransformControl::SetAxisCursorOverColor(FString AxisName)
+{
+    TArray<UMaterialInstanceDynamic*> MaterialInstanceArray = *MaterialInstanceMap.Find(AxisName);
+    for (int32 index = 0; index < MaterialInstanceArray.Num(); ++index)
+    {
+        MaterialInstanceArray[index]->SetVectorParameterValue(FName(TEXT("GizmoColor")), FColor(0xFF, 0xFF, 0x00, 0xFF));
+    }
+
+    GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Blue, "SetAxisCursorOverColor: " + AxisName);
+}
+
+void ATransformControl::RecoverAxisColor(FString AxisName)
+{
+    TArray<UMaterialInstanceDynamic*> MaterialInstanceArray = *MaterialInstanceMap.Find(AxisName);
+    TArray<FColor> MaterialColorArray = *MaterialColorMap.Find(AxisName);
+    for (int32 index = 0; index < MaterialInstanceArray.Num(); ++index)
+    {
+        MaterialInstanceArray[index]->SetVectorParameterValue(FName(TEXT("GizmoColor")), MaterialColorArray[index]);
+    }
+
+    GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Blue, "RecoverAxisColor");
 }

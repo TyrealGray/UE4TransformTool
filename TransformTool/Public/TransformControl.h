@@ -19,23 +19,23 @@ enum class EToolStatusEnum : uint8
 {
     ES_NONE UMETA(DisplayName = "None"),
 
-    ES_AXISXMOVE 	UMETA(DisplayName = "AxisXMove"),
-    ES_AXISYMOVE	UMETA(DisplayName = "AxisYMove"),
-    ES_AXISZMOVE	UMETA(DisplayName = "AxisZMove"),
-    ES_AXISXYMOVE	UMETA(DisplayName = "AxisXYMove"),
-    ES_AXISXZMOVE	UMETA(DisplayName = "AxisXZMove"),
-    ES_AXISYZMOVE	UMETA(DisplayName = "AxisYZMove"),
+    ES_AXISX_MOVE UMETA(DisplayName = "AxisXMove"),
+    ES_AXISY_MOVE UMETA(DisplayName = "AxisYMove"),
+    ES_AXISZ_MOVE UMETA(DisplayName = "AxisZMove"),
+    ES_AXISXY_MOVE UMETA(DisplayName = "AxisXYMove"),
+    ES_AXISXZ_MOVE	 UMETA(DisplayName = "AxisXZMove"),
+    ES_AXISYZ_MOVE	 UMETA(DisplayName = "AxisYZMove"),
 
     ES_PITCH UMETA(DisplayName = "Pitch"),
     ES_ROLL UMETA(DisplayName = "Roll"),
     ES_YAW UMETA(DisplayName = "Yaw"),
 
-    ES_AXISXSCALE UMETA(DisplayName = "AxisXScale"),
-    ES_AXISYSCALE UMETA(DisplayName = "AxisYScale"),
-    ES_AXISZSCALE UMETA(DisplayName = "AxisZScale"),
-    ES_AXISXYSCALE UMETA(DisplayName = "AxisXYScale"),
-    ES_AXISXZSCALE UMETA(DisplayName = "AxisXZScale"),
-    ES_AXISYZCALE UMETA(DisplayName = "AxisYZScale")
+    ES_AXISX_SCALE UMETA(DisplayName = "AxisXScale"),
+    ES_AXISY_SCALE UMETA(DisplayName = "AxisYScale"),
+    ES_AXISZ_SCALE UMETA(DisplayName = "AxisZScale"),
+    ES_AXISXY_SCALE UMETA(DisplayName = "AxisXYScale"),
+    ES_AXISXZ_SCALE UMETA(DisplayName = "AxisXZScale"),
+    ES_AXISYZ_SCALE UMETA(DisplayName = "AxisYZScale")
 };
 
 
@@ -88,21 +88,27 @@ private:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
     class UStaticMeshComponent * MoveToolAxisX;
+    class UMaterialInstanceDynamic * MoveToolAxisXMatIns;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
     class UStaticMeshComponent * MoveToolAxisY;
+    class UMaterialInstanceDynamic * MoveToolAxisYMatIns;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
     class UStaticMeshComponent * MoveToolAxisZ;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * MoveToolAxisXZ;
+    class UMaterialInstanceDynamic * MoveToolAxisZMatIns;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
     class UStaticMeshComponent * MoveToolAxisXY;
+    class UMaterialInstanceDynamic * MoveToolAxisXYMatIns;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
+    class UStaticMeshComponent * MoveToolAxisXZ;
+    class UMaterialInstanceDynamic * MoveToolAxisXZMatIns;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
     class UStaticMeshComponent * MoveToolAxisYZ;
+    class UMaterialInstanceDynamic * MoveToolAxisYZMatIns;
 
     #pragma endregion
 
@@ -145,6 +151,10 @@ private:
 
     class AActor* OverlookActor;
 
+    TMap<FString, TArray<FColor>> MaterialColorMap;
+
+    TMap<FString, TArray<UMaterialInstanceDynamic*>> MaterialInstanceMap;
+
     void InitCenter();
 
     void InitAxis();
@@ -164,6 +174,10 @@ private:
     void HideAllMeshComponents();
 
     void SetAxisMeshComponentEnable(class UStaticMeshComponent* MeshComponent, bool bEnable);
+
+    void SetAxisCursorOverColor(FString AxisName);
+
+    void RecoverAxisColor(FString AxisName);
 
     #pragma region MoveToolEvent
 
