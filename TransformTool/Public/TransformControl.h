@@ -72,84 +72,27 @@ public:
 
 private:
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Center, meta = (AllowPrivateAccess = "true"))
-    class USceneComponent * Center;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * ControlCenter;
-
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Status, meta = (AllowPrivateAccess = "true"))
     EToolStatusEnum CurrentStatus;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mode, meta = (AllowPrivateAccess = "true"))
     EToolModeEnum CurrentMode;
 
-    #pragma region MoveToolProperty
+    class USceneComponent * Center;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * MoveToolAxisX;
-    class UMaterialInstanceDynamic * MoveToolAxisXMatIns;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * MoveToolAxisY;
-    class UMaterialInstanceDynamic * MoveToolAxisYMatIns;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * MoveToolAxisZ;
-    class UMaterialInstanceDynamic * MoveToolAxisZMatIns;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * MoveToolAxisXY;
-    class UMaterialInstanceDynamic * MoveToolAxisXYMatIns;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * MoveToolAxisXZ;
-    class UMaterialInstanceDynamic * MoveToolAxisXZMatIns;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * MoveToolAxisYZ;
-    class UMaterialInstanceDynamic * MoveToolAxisYZMatIns;
-
-    #pragma endregion
-
-    #pragma region RotateToolProperty
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * RotateToolPitch;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * RotateToolRoll;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * RotateToolYaw;
-
-    #pragma endregion
-
-    #pragma region ScaleToolProperty
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * ScaleToolAxisX;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * ScaleToolAxisY;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * ScaleToolAxisZ;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * ScaleToolAxisXZ;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * ScaleToolAxisXY;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Axis, meta = (AllowPrivateAccess = "true"))
-    class UStaticMeshComponent * ScaleToolAxisYZ;
-
-    #pragma endregion
+    class UStaticMeshComponent * ControlCenter;
 
     class UCameraComponent* AttachedCamera;
 
     class AActor* OverlookActor;
+
+    TArray<UStaticMeshComponent*> MoveToolAxes;
+
+    TArray<UStaticMeshComponent*> RotateToolAxes;
+
+    TArray<UStaticMeshComponent*> ScaleToolAxes;
+
+    TMap<FString, EToolStatusEnum> AxisStatusMap;
 
     TMap<FString, TArray<FColor>> MaterialColorMap;
 
@@ -157,13 +100,19 @@ private:
 
     void InitCenter();
 
-    void InitAxis();
+    void InitAxes();
 
-    void InitCombinationAxis();
+    void InitMoveToolAxes();
 
-    class UStaticMeshComponent* CreateAxis(FString Name, FString Group, FColor Color);
+    void InitRotateToolAxes();
 
-    class UStaticMeshComponent* CreateCombinationAxis(FString Name, FString Group, FColor Color1, FColor Color2);
+    void InitScaleToolAxes();
+
+    class UStaticMeshComponent* CreateAxis(FString Name, FString Group,
+                                               FColor Color, EToolStatusEnum ToolStatus);
+
+    class UStaticMeshComponent* CreateCombinationAxis(FString Name, FString Group,
+                FColor Color1, FColor Color2, EToolStatusEnum ToolStatus);
 
     void UpdateTransformControlPosition();
 
@@ -171,70 +120,18 @@ private:
 
     void SwitchControl(EToolModeEnum mode);
 
-    void HideAllMeshComponents();
+    void SetAxesMeshComponentEnable(const TArray<UStaticMeshComponent*> &AxesMesh, bool bEnable);
 
     void SetAxisMeshComponentEnable(class UStaticMeshComponent* MeshComponent, bool bEnable);
+
+    void HideAllMeshComponents();
 
     void SetAxisCursorOverColor(FString AxisName);
 
     void RecoverAxisColor(FString AxisName);
 
-    #pragma region MoveToolEvent
-
     UFUNCTION()
-    void OnMoveTooXClicked(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnMoveToolYClicked(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnMoveToolZClicked(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnMoveToolXYClicked(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnMoveToolXZClicked(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnMoveToolYZClicked(class UPrimitiveComponent* TouchedComponent);
-
-    #pragma endregion
-
-    #pragma region RotateToolEvent
-
-    UFUNCTION()
-    void OnRotateToolPitchClicked(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnRotateToolRollClicked(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnRotateToolYawClicked(class UPrimitiveComponent* TouchedComponent);
-
-    #pragma endregion
-
-    #pragma region ScaleToolEvent
-
-    UFUNCTION()
-    void OnScaleToolXClicked(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnScaleToolYClicked(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnScaleToolZClicked(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnScaleToolXYClicked(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnScaleToolXZClicked(class UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION()
-    void OnScaleToolYZClicked(class UPrimitiveComponent* TouchedComponent);
-
-    #pragma endregion
+    void OnAxisClicked(class UPrimitiveComponent* TouchedComponent);
 
     UFUNCTION()
     void OnAxisReleased(class UPrimitiveComponent* TouchedComponent);
