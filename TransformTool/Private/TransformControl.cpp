@@ -26,7 +26,7 @@ ATransformControl::ATransformControl()
 
     InitCombinationAxis();
 
-    SetCurrentMode(EToolModeEnum::EM_ROTATE);
+    SetCurrentMode(EToolModeEnum::EM_MOVE);
 }
 
 // Called when the game starts or when spawned
