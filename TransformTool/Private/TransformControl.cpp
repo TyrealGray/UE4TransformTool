@@ -20,8 +20,6 @@ ATransformControl::ATransformControl()
     Center = CreateDefaultSubobject<USceneComponent>("center");
     RootComponent = Center;
 
-    InitCenter();
-
     InitAxes();
 
     SetCurrentMode(EToolModeEnum::EM_MOVE);
@@ -56,13 +54,6 @@ class AActor* ATransformControl::GetOverLookActor()
     return OverlookActor;
 }
 
-void ATransformControl::InitCenter()
-{
-    ControlCenter = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MoveToolCenter"));
-    ControlCenter->StaticMesh = LoadObject<UStaticMesh>(NULL, *FString("/Game/TransformTool/MoveTool/MoveToolCenter.MoveToolCenter"));
-    ControlCenter->AttachTo(Center);
-}
-
 void ATransformControl::InitAxes()
 {
     InitMoveToolAxes();
@@ -74,6 +65,8 @@ void ATransformControl::InitAxes()
 
 void ATransformControl::InitMoveToolAxes()
 {
+    ControlCenter = CreateAxis("Center", "MoveTool", FColor(0xFF, 0xFF, 0xFF, 0xFF), EToolStatusEnum::ES_AXES_CENTER);
+
     UStaticMeshComponent* MoveToolAxisX = CreateAxis("AxisX", "MoveTool", FColor(0xFF, 0x00, 0x00, 0xFF), EToolStatusEnum::ES_AXISX_MOVE);
 
     UStaticMeshComponent* MoveToolAxisY = CreateAxis("AxisY", "MoveTool", FColor(0x00, 0xFF, 0x00, 0xFF), EToolStatusEnum::ES_AXISY_MOVE);

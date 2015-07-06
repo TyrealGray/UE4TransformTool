@@ -19,6 +19,8 @@ enum class EToolStatusEnum : uint8
 {
     ES_NONE UMETA(DisplayName = "None"),
 
+    ES_AXES_CENTER UMETA(DisplayName = "AxesCenter"),
+
     ES_AXISX_MOVE UMETA(DisplayName = "AxisXMove"),
     ES_AXISY_MOVE UMETA(DisplayName = "AxisYMove"),
     ES_AXISZ_MOVE UMETA(DisplayName = "AxisZMove"),
@@ -97,8 +99,6 @@ private:
     TMap<FString, TArray<FColor>> MaterialColorMap;
 
     TMap<FString, TArray<UMaterialInstanceDynamic*>> MaterialInstanceMap;
-
-    void InitCenter();
 
     void InitAxes();
 
