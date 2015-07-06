@@ -74,7 +74,7 @@ void ATransformControl::InitMoveToolAxes()
     UStaticMeshComponent* MoveToolAxisZ = CreateAxis("AxisZ", "MoveTool", FColor(0x00, 0x00, 0xFF, 0xFF), EToolStatusEnum::ES_AXISZ_MOVE);
 
     UStaticMeshComponent* MoveToolAxisXY = CreateCombinationAxis("AxisXY", "MoveTool",
-                                           FColor(0x00, 0xFF, 0x00, 0xFF), FColor(0xFF, 0x00, 0x00, 0xFF), EToolStatusEnum::ES_AXISXY_MOVE);
+                                           FColor(0xFF, 0x00, 0x00, 0xFF), FColor(0x00, 0xFF, 0x00, 0xFF), EToolStatusEnum::ES_AXISXY_MOVE);
 
     UStaticMeshComponent* MoveToolAxisXZ = CreateCombinationAxis("AxisXZ", "MoveTool",
                                            FColor(0x00, 0x00, 0xFF, 0xFF), FColor(0xFF, 0x00, 0x00, 0xFF), EToolStatusEnum::ES_AXISXZ_MOVE);
@@ -92,9 +92,9 @@ void ATransformControl::InitMoveToolAxes()
 
 void ATransformControl::InitRotateToolAxes()
 {
-    UStaticMeshComponent* RotateToolPitch = CreateAxis("Pitch", "RotateTool", FColor(0xFF, 0x00, 0x00, 0xFF), EToolStatusEnum::ES_PITCH);
+    UStaticMeshComponent* RotateToolPitch = CreateAxis("Pitch", "RotateTool", FColor(0x00, 0xFF, 0x00, 0xFF),  EToolStatusEnum::ES_PITCH);
 
-    UStaticMeshComponent* RotateToolRoll = CreateAxis("Roll", "RotateTool", FColor(0x00, 0xFF, 0x00, 0xFF), EToolStatusEnum::ES_ROLL);
+    UStaticMeshComponent* RotateToolRoll = CreateAxis("Roll", "RotateTool", FColor(0xFF, 0x00, 0x00, 0xFF), EToolStatusEnum::ES_ROLL);
 
     UStaticMeshComponent* RotateToolYaw = CreateAxis("Yaw", "RotateTool", FColor(0x00, 0x00, 0xFF, 0xFF), EToolStatusEnum::ES_YAW);
 
@@ -112,13 +112,13 @@ void ATransformControl::InitScaleToolAxes()
     UStaticMeshComponent* ScaleToolAxisZ = CreateAxis("AxisZ", "ScaleTool", FColor(0x00, 0x00, 0xFF, 0xFF), EToolStatusEnum::ES_AXISZ_SCALE);
 
     UStaticMeshComponent* ScaleToolAxisXY = CreateCombinationAxis("AxisXY", "ScaleTool",
-                                            FColor(0xFF, 0x00, 0x00, 0xFF), FColor(0x00, 0xFF, 0x00, 0xFF), EToolStatusEnum::ES_AXISXY_SCALE);
+                                            FColor(0x00, 0xFF, 0x00, 0xFF), FColor(0xFF, 0x00, 0x00, 0xFF), EToolStatusEnum::ES_AXISXY_SCALE);
 
     UStaticMeshComponent* ScaleToolAxisXZ = CreateCombinationAxis("AxisXZ", "ScaleTool",
-                                            FColor(0xFF, 0x00, 0x00, 0xFF), FColor(0x00, 0x00, 0xFF, 0xFF), EToolStatusEnum::ES_AXISXZ_SCALE);
+                                            FColor(0x00, 0x00, 0xFF, 0xFF), FColor(0xFF, 0x00, 0x00, 0xFF), EToolStatusEnum::ES_AXISXZ_SCALE);
 
     UStaticMeshComponent* ScaleToolAxisYZ = CreateCombinationAxis("AxisYZ", "ScaleTool",
-                                            FColor(0x00, 0x00, 0xFF, 0xFF), FColor(0x00, 0xFF, 0x00, 0xFF), EToolStatusEnum::ES_AXISYZ_SCALE);
+                                            FColor(0x00, 0xFF, 0x00, 0xFF), FColor(0x00, 0x00, 0xFF, 0xFF), EToolStatusEnum::ES_AXISYZ_SCALE);
 
     ScaleToolAxes.Add(ScaleToolAxisX);
     ScaleToolAxes.Add(ScaleToolAxisY);
@@ -156,9 +156,9 @@ class UStaticMeshComponent* ATransformControl::CreateAxis(FString Name, FString 
 
     Axis->AttachTo(Center);
 
-    AxisStatusMap.Add((Group + Name), ToolStatus);
-    MaterialColorMap.Add((Group + Name), MaterialColorArray);
-    MaterialInstanceMap.Add((Group + Name), MaterialInstanceArray);
+    AxisStatusMap.Add(Axis, ToolStatus);
+    MaterialColorMap.Add(Axis, MaterialColorArray);
+    MaterialInstanceMap.Add(Axis, MaterialInstanceArray);
 
     return Axis;
 }
@@ -197,9 +197,9 @@ class UStaticMeshComponent* ATransformControl::CreateCombinationAxis(FString Nam
 
     CombinationAxis->AttachTo(Center);
 
-    AxisStatusMap.Add((Group + Name), ToolStatus);
-    MaterialColorMap.Add((Group + Name), MaterialColorArray);
-    MaterialInstanceMap.Add((Group + Name), MaterialInstanceArray);
+    AxisStatusMap.Add(CombinationAxis, ToolStatus);
+    MaterialColorMap.Add(CombinationAxis, MaterialColorArray);
+    MaterialInstanceMap.Add(CombinationAxis, MaterialInstanceArray);
 
     return CombinationAxis;
 }
@@ -316,7 +316,7 @@ void ATransformControl::OnAxisClicked(class UPrimitiveComponent* TouchedComponen
 {
     GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Blue, "Clicked: " + TouchedComponent->GetName());
 
-    SetCurrentStatus(*AxisStatusMap.Find(TouchedComponent->GetName()));
+    SetCurrentStatus(*AxisStatusMap.Find(Cast<UStaticMeshComponent>(TouchedComponent)));
 }
 
 void ATransformControl::OnAxisReleased(class UPrimitiveComponent* TouchedComponent)
@@ -333,7 +333,7 @@ void ATransformControl::OnAxisBeginCursorOver(class UPrimitiveComponent* Touched
         return;
     }
 
-    SetAxisCursorOverColor(TouchedComponent->GetName());
+    SetAxisCursorOverColor(Cast<UStaticMeshComponent>(TouchedComponent));
 }
 
 void ATransformControl::OnAxisEndCursorOver(class UPrimitiveComponent* TouchedComponent)
@@ -345,7 +345,7 @@ void ATransformControl::OnAxisEndCursorOver(class UPrimitiveComponent* TouchedCo
         return;
     }
 
-    RecoverAxisColor(TouchedComponent->GetName());
+    RecoverAxisColor(Cast<UStaticMeshComponent>(TouchedComponent));
 }
 
 void ATransformControl::SwitchMouseCursor(EMouseCursor::Type type)
@@ -353,21 +353,21 @@ void ATransformControl::SwitchMouseCursor(EMouseCursor::Type type)
     UGameplayStatics::GetPlayerController(GetWorld(), 0)->CurrentMouseCursor = type;
 }
 
-void ATransformControl::SetAxisCursorOverColor(FString AxisName)
+void ATransformControl::SetAxisCursorOverColor(UStaticMeshComponent* Axis)
 {
-    TArray<UMaterialInstanceDynamic*> MaterialInstanceArray = *MaterialInstanceMap.Find(AxisName);
+    TArray<UMaterialInstanceDynamic*> MaterialInstanceArray = *MaterialInstanceMap.Find(Axis);
     for (int32 index = 0; index < MaterialInstanceArray.Num(); ++index)
     {
         MaterialInstanceArray[index]->SetVectorParameterValue(FName(TEXT("GizmoColor")), FColor(0xFF, 0xFF, 0x00, 0xFF));
     }
 
-    GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Blue, "SetAxisCursorOverColor: " + AxisName);
+    GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Blue, "SetAxisCursorOverColor: " + Axis->GetName());
 }
 
-void ATransformControl::RecoverAxisColor(FString AxisName)
+void ATransformControl::RecoverAxisColor(UStaticMeshComponent* Axis)
 {
-    TArray<UMaterialInstanceDynamic*> MaterialInstanceArray = *MaterialInstanceMap.Find(AxisName);
-    TArray<FColor> MaterialColorArray = *MaterialColorMap.Find(AxisName);
+    TArray<UMaterialInstanceDynamic*> MaterialInstanceArray = *MaterialInstanceMap.Find(Axis);
+    TArray<FColor> MaterialColorArray = *MaterialColorMap.Find(Axis);
     for (int32 index = 0; index < MaterialInstanceArray.Num(); ++index)
     {
         MaterialInstanceArray[index]->SetVectorParameterValue(FName(TEXT("GizmoColor")), MaterialColorArray[index]);

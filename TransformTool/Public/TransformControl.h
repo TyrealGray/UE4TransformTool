@@ -94,11 +94,11 @@ private:
 
     TArray<UStaticMeshComponent*> ScaleToolAxes;
 
-    TMap<FString, EToolStatusEnum> AxisStatusMap;
+    TMap<UStaticMeshComponent*, EToolStatusEnum> AxisStatusMap;
 
-    TMap<FString, TArray<FColor>> MaterialColorMap;
+    TMap<UStaticMeshComponent*, TArray<FColor>> MaterialColorMap;
 
-    TMap<FString, TArray<UMaterialInstanceDynamic*>> MaterialInstanceMap;
+    TMap<UStaticMeshComponent*, TArray<UMaterialInstanceDynamic*>> MaterialInstanceMap;
 
     void InitAxes();
 
@@ -126,9 +126,9 @@ private:
 
     void HideAllMeshComponents();
 
-    void SetAxisCursorOverColor(FString AxisName);
+    void SetAxisCursorOverColor(UStaticMeshComponent* Axis);
 
-    void RecoverAxisColor(FString AxisName);
+    void RecoverAxisColor(UStaticMeshComponent* Axis);
 
     UFUNCTION()
     void OnAxisClicked(class UPrimitiveComponent* TouchedComponent);
