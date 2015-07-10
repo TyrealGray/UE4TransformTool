@@ -216,6 +216,11 @@ void ATransformControl::UpdateTransformControlPosition()
 
     FVector moveToolLocation = (OverlookActor->GetActorLocation() - ViewLocation).Rotation().RotateVector(FVector(61.0f, 0.0f, 0.0f));
     SetActorLocation(ViewLocation + moveToolLocation);
+	
+	if (EToolModeEnum::EM_SCALE == GetCurrentMode())
+    {
+        SetActorRotation(OverlookActor->GetActorRotation());
+    }
 }
 
 void ATransformControl::SetCurrentStatus(EToolStatusEnum Status)
