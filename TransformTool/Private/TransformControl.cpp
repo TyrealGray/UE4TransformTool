@@ -221,6 +221,10 @@ void ATransformControl::UpdateTransformControlPosition()
     {
         SetActorRotation(OverlookActor->GetActorRotation());
     }
+	else
+    {
+        SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
+    }
 }
 
 void ATransformControl::SetCurrentStatus(EToolStatusEnum Status)
