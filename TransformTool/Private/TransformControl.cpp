@@ -3,6 +3,7 @@
 #include "TransformTool.h"
 #include "TransformToolPrivatePCH.h"
 #include "TransformControl.h"
+#include "ControlAxes.h"
 
 // Sets default values
 ATransformControl::ATransformControl()
@@ -13,16 +14,27 @@ ATransformControl::ATransformControl()
 
     CurrentStatus = EToolStatusEnum::ES_NONE;
 
+    bOrthogonalMode = false;
+
     AttachedCamera = nullptr;
 
     OverlookActor = nullptr;
 
-    Center = CreateDefaultSubobject<USceneComponent>("center");
+    MoveAxes = new ControlAxes();
+
+    RotateAxes = new ControlAxes();
+
+    ScaleAxes = new ControlAxes();
+
+    CurrentAxes = MoveAxes;
+
+    Center = CreateDefaultSubobject<USceneComponent> ( "center" );
     RootComponent = Center;
 
     InitAxes();
 
-    SetCurrentMode(EToolModeEnum::EM_MOVE);
+    SetCurrentMode ( EToolModeEnum::EM_MOVE );
+
 }
 
 // Called when the game starts or when spawned
@@ -32,21 +44,21 @@ void ATransformControl::BeginPlay()
 }
 
 // Called every frame
-void ATransformControl::Tick( float DeltaTime )
+void ATransformControl::Tick ( float DeltaTime )
 {
-    Super::Tick( DeltaTime );
+    Super::Tick ( DeltaTime );
 
-    UpdateTransformControlPosition();
+    UpdateTransformControl();
 }
 
-void ATransformControl::AttachToCamera(class UCameraComponent* Camera)
+void ATransformControl::AttachToCamera ( class UCameraComponent* Camera )
 {
     AttachedCamera = Camera;
 }
 
-void ATransformControl::SetOverlookActor(class AActor* Actor)
+void ATransformControl::SetOverlookActor ( class AActor* Actor )
 {
-    OverlookActor = (this == Actor) ? OverlookActor : Actor;
+    OverlookActor = ( this == Actor ) ? OverlookActor : Actor;
 }
 
 class AActor* ATransformControl::GetOverLookActor()
@@ -65,169 +77,231 @@ void ATransformControl::InitAxes()
 
 void ATransformControl::InitMoveToolAxes()
 {
-    ControlCenter = CreateAxis("Center", "MoveTool", FColor(0xFF, 0xFF, 0xFF, 0xFF), EToolStatusEnum::ES_AXES_CENTER);
+    FColor AxisXColor ( 0xFF, 0x00, 0x00, 0xFF );
+    FColor AxisYColor ( 0x00, 0xFF, 0x00, 0xFF );
+    FColor AxisZColor ( 0x00, 0x00, 0xFF, 0xFF );
 
-    UStaticMeshComponent* MoveToolAxisX = CreateAxis("AxisX", "MoveTool", FColor(0xFF, 0x00, 0x00, 0xFF), EToolStatusEnum::ES_AXISX_MOVE);
+    UStaticMeshComponent* Center = CreateAxis ( "Center", "MoveTool", FColor ( 0xFF, 0xFF, 0xFF, 0xFF ), EToolStatusEnum::ES_AXES_CENTER );
 
-    UStaticMeshComponent* MoveToolAxisY = CreateAxis("AxisY", "MoveTool", FColor(0x00, 0xFF, 0x00, 0xFF), EToolStatusEnum::ES_AXISY_MOVE);
+    UStaticMeshComponent* MoveToolAxisX = CreateAxis ( "AxisX", "MoveTool", AxisXColor, EToolStatusEnum::ES_AXISX_MOVE );
 
-    UStaticMeshComponent* MoveToolAxisZ = CreateAxis("AxisZ", "MoveTool", FColor(0x00, 0x00, 0xFF, 0xFF), EToolStatusEnum::ES_AXISZ_MOVE);
+    UStaticMeshComponent* MoveToolAxisY = CreateAxis ( "AxisY", "MoveTool", AxisYColor, EToolStatusEnum::ES_AXISY_MOVE );
 
-    UStaticMeshComponent* MoveToolAxisXY = CreateCombinationAxis("AxisXY", "MoveTool",
-                                           FColor(0xFF, 0x00, 0x00, 0xFF), FColor(0x00, 0xFF, 0x00, 0xFF), EToolStatusEnum::ES_AXISXY_MOVE);
+    UStaticMeshComponent* MoveToolAxisZ = CreateAxis ( "AxisZ", "MoveTool", AxisZColor, EToolStatusEnum::ES_AXISZ_MOVE );
 
-    UStaticMeshComponent* MoveToolAxisXZ = CreateCombinationAxis("AxisXZ", "MoveTool",
-                                           FColor(0x00, 0x00, 0xFF, 0xFF), FColor(0xFF, 0x00, 0x00, 0xFF), EToolStatusEnum::ES_AXISXZ_MOVE);
+    UStaticMeshComponent* MoveToolAxisXY = CreateCombinationAxis ( "AxisXY", "MoveTool",
+                                           AxisXColor, AxisYColor, EToolStatusEnum::ES_AXISXY_MOVE );
 
-    UStaticMeshComponent* MoveToolAxisYZ = CreateCombinationAxis("AxisYZ", "MoveTool",
-                                           FColor(0x00, 0x00, 0xFF, 0xFF), FColor(0x00, 0xFF, 0x00, 0xFF), EToolStatusEnum::ES_AXISYZ_MOVE);
+    UStaticMeshComponent* MoveToolAxisXZ = CreateCombinationAxis ( "AxisXZ", "MoveTool",
+                                           AxisZColor, AxisXColor, EToolStatusEnum::ES_AXISXZ_MOVE );
 
-    MoveToolAxes.Add(MoveToolAxisX);
-    MoveToolAxes.Add(MoveToolAxisY);
-    MoveToolAxes.Add(MoveToolAxisZ);
-    MoveToolAxes.Add(MoveToolAxisXY);
-    MoveToolAxes.Add(MoveToolAxisXZ);
-    MoveToolAxes.Add(MoveToolAxisYZ);
+    UStaticMeshComponent* MoveToolAxisYZ = CreateCombinationAxis ( "AxisYZ", "MoveTool",
+                                           AxisYColor, AxisZColor, EToolStatusEnum::ES_AXISYZ_MOVE );
+
+    MoveAxes->SetCenter ( Center, FColor ( 0xFF, 0xFF, 0xFF, 0xFF ) );
+
+    MoveAxes->SetAxisX ( MoveToolAxisX, AxisXColor );
+    MoveAxes->SetAxisY ( MoveToolAxisY, AxisYColor );
+    MoveAxes->SetAxisZ ( MoveToolAxisZ, AxisZColor );
+
+    MoveAxes->SetAxisXY ( MoveToolAxisXY, AxisXColor, AxisYColor );
+    MoveAxes->SetAxisXZ ( MoveToolAxisXZ, AxisZColor, AxisXColor );
+    MoveAxes->SetAxisYZ ( MoveToolAxisYZ, AxisYColor, AxisZColor );
+
+    MoveAxes->HideAxes();
 }
 
 void ATransformControl::InitRotateToolAxes()
 {
-    UStaticMeshComponent* RotateToolPitch = CreateAxis("Pitch", "RotateTool", FColor(0x00, 0xFF, 0x00, 0xFF),  EToolStatusEnum::ES_PITCH);
+    FColor AxisXColor ( 0xFF, 0x00, 0x00, 0xFF );
+    FColor AxisYColor ( 0x00, 0xFF, 0x00, 0xFF );
+    FColor AxisZColor ( 0x00, 0x00, 0xFF, 0xFF );
 
-    UStaticMeshComponent* RotateToolRoll = CreateAxis("Roll", "RotateTool", FColor(0xFF, 0x00, 0x00, 0xFF), EToolStatusEnum::ES_ROLL);
+    UStaticMeshComponent* RotateToolPitch = CreateAxis ( "Pitch", "RotateTool", FColor ( 0x00, 0xFF, 0x00, 0xFF ),  EToolStatusEnum::ES_PITCH );
 
-    UStaticMeshComponent* RotateToolYaw = CreateAxis("Yaw", "RotateTool", FColor(0x00, 0x00, 0xFF, 0xFF), EToolStatusEnum::ES_YAW);
+    UStaticMeshComponent* RotateToolRoll = CreateAxis ( "Roll", "RotateTool", FColor ( 0xFF, 0x00, 0x00, 0xFF ), EToolStatusEnum::ES_ROLL );
 
-    RotateToolAxes.Add(RotateToolPitch);
-    RotateToolAxes.Add(RotateToolRoll);
-    RotateToolAxes.Add(RotateToolYaw);
+    UStaticMeshComponent* RotateToolYaw = CreateAxis ( "Yaw", "RotateTool", FColor ( 0x00, 0x00, 0xFF, 0xFF ), EToolStatusEnum::ES_YAW );
+
+    RotateAxes->SetAxisX ( RotateToolRoll, AxisXColor );
+    RotateAxes->SetAxisY ( RotateToolPitch, AxisYColor );
+    RotateAxes->SetAxisZ ( RotateToolYaw, AxisZColor );
+
+    RotateAxes->HideAxes();
 }
 
 void ATransformControl::InitScaleToolAxes()
 {
-    UStaticMeshComponent* ScaleToolAxisX = CreateAxis("AxisX", "ScaleTool", FColor(0xFF, 0x00, 0x00, 0xFF), EToolStatusEnum::ES_AXISX_SCALE);
+    FColor AxisXColor ( 0xFF, 0x00, 0x00, 0xFF );
+    FColor AxisYColor ( 0x00, 0xFF, 0x00, 0xFF );
+    FColor AxisZColor ( 0x00, 0x00, 0xFF, 0xFF );
 
-    UStaticMeshComponent* ScaleToolAxisY = CreateAxis("AxisY", "ScaleTool", FColor(0x00, 0xFF, 0x00, 0xFF), EToolStatusEnum::ES_AXISY_SCALE);
+    UStaticMeshComponent* Center = CreateAxis ( "Center", "ScaleTool", FColor ( 0xFF, 0xFF, 0xFF, 0xFF ), EToolStatusEnum::ES_AXES_CENTER );
 
-    UStaticMeshComponent* ScaleToolAxisZ = CreateAxis("AxisZ", "ScaleTool", FColor(0x00, 0x00, 0xFF, 0xFF), EToolStatusEnum::ES_AXISZ_SCALE);
+    UStaticMeshComponent* ScaleToolAxisX = CreateAxis ( "AxisX", "ScaleTool", AxisXColor, EToolStatusEnum::ES_AXISX_SCALE );
 
-    UStaticMeshComponent* ScaleToolAxisXY = CreateCombinationAxis("AxisXY", "ScaleTool",
-                                            FColor(0x00, 0xFF, 0x00, 0xFF), FColor(0xFF, 0x00, 0x00, 0xFF), EToolStatusEnum::ES_AXISXY_SCALE);
+    UStaticMeshComponent* ScaleToolAxisY = CreateAxis ( "AxisY", "ScaleTool", AxisYColor, EToolStatusEnum::ES_AXISY_SCALE );
 
-    UStaticMeshComponent* ScaleToolAxisXZ = CreateCombinationAxis("AxisXZ", "ScaleTool",
-                                            FColor(0x00, 0x00, 0xFF, 0xFF), FColor(0xFF, 0x00, 0x00, 0xFF), EToolStatusEnum::ES_AXISXZ_SCALE);
+    UStaticMeshComponent* ScaleToolAxisZ = CreateAxis ( "AxisZ", "ScaleTool", AxisZColor, EToolStatusEnum::ES_AXISZ_SCALE );
 
-    UStaticMeshComponent* ScaleToolAxisYZ = CreateCombinationAxis("AxisYZ", "ScaleTool",
-                                            FColor(0x00, 0xFF, 0x00, 0xFF), FColor(0x00, 0x00, 0xFF, 0xFF), EToolStatusEnum::ES_AXISYZ_SCALE);
+    UStaticMeshComponent* ScaleToolAxisXY = CreateCombinationAxis ( "AxisXY", "ScaleTool",
+                                            AxisXColor, AxisYColor, EToolStatusEnum::ES_AXISXY_SCALE );
 
-    ScaleToolAxes.Add(ScaleToolAxisX);
-    ScaleToolAxes.Add(ScaleToolAxisY);
-    ScaleToolAxes.Add(ScaleToolAxisZ);
-    ScaleToolAxes.Add(ScaleToolAxisXY);
-    ScaleToolAxes.Add(ScaleToolAxisXZ);
-    ScaleToolAxes.Add(ScaleToolAxisYZ);
+    UStaticMeshComponent* ScaleToolAxisXZ = CreateCombinationAxis ( "AxisXZ", "ScaleTool",
+                                            AxisXColor, AxisZColor, EToolStatusEnum::ES_AXISXZ_SCALE );
+
+    UStaticMeshComponent* ScaleToolAxisYZ = CreateCombinationAxis ( "AxisYZ", "ScaleTool",
+                                            AxisYColor, AxisZColor, EToolStatusEnum::ES_AXISYZ_SCALE );
+
+    ScaleAxes->SetCenter ( Center, FColor ( 0xFF, 0xFF, 0xFF, 0xFF ) );
+
+    ScaleAxes->SetAxisX ( ScaleToolAxisX, AxisXColor );
+    ScaleAxes->SetAxisY ( ScaleToolAxisY, AxisYColor );
+    ScaleAxes->SetAxisZ ( ScaleToolAxisZ, AxisZColor );
+
+    ScaleAxes->SetAxisXY ( ScaleToolAxisXY, AxisXColor, AxisYColor );
+    ScaleAxes->SetAxisXZ ( ScaleToolAxisXZ, AxisXColor, AxisZColor );
+    ScaleAxes->SetAxisYZ ( ScaleToolAxisYZ, AxisYColor, AxisZColor );
+
+    ScaleAxes->HideAxes();
 }
 
-class UStaticMeshComponent* ATransformControl::CreateAxis(FString Name, FString Group,
-            FColor Color, EToolStatusEnum ToolStatus)
+class UStaticMeshComponent* ATransformControl::CreateAxis ( FString Name, FString Group,
+            FColor Color, EToolStatusEnum ToolStatus )
 {
-    UMaterial* Mat = LoadObject<UMaterial>(NULL, TEXT("/Game/TransformTool/GizmoMaterial.GizmoMaterial"));
+    UMaterial* Mat = LoadObject<UMaterial> ( NULL, TEXT ( "/Game/TransformTool/GizmoMaterial.GizmoMaterial" ) );
 
-    UStaticMeshComponent* Axis = CreateDefaultSubobject<UStaticMeshComponent>(*(Group + Name));
-    Axis->StaticMesh = LoadObject<UStaticMesh>(NULL, *FString("/Game/TransformTool/" + Group + "/" + Name + "." + Name));
-    Axis->SetCollisionProfileName(FName("UI"));
+    UStaticMeshComponent* Axis = CreateDefaultSubobject<UStaticMeshComponent> ( * ( Group + Name ) );
+    Axis->StaticMesh = LoadObject<UStaticMesh> ( NULL, *FString ( "/Game/TransformTool/" + Group + "/" + Name + "." + Name ) );
+    Axis->SetCollisionProfileName ( TEXT ( "UI" ) );
+    Axis->SetCollisionEnabled ( ECollisionEnabled::QueryOnly );
     Axis->bCastDynamicShadow = false;
 
-    Axis->SetMaterial(0, Mat);
+    Axis->SetMaterial ( 0, Mat );
 
-    UMaterialInstanceDynamic* MaterialInstanceDynamic = Axis->CreateAndSetMaterialInstanceDynamic(0);
-    MaterialInstanceDynamic->SetVectorParameterValue(FName(TEXT("GizmoColor")), Color);
+    UMaterialInstanceDynamic* MaterialInstanceDynamic = Axis->CreateAndSetMaterialInstanceDynamic ( 0 );
+    MaterialInstanceDynamic->SetVectorParameterValue ( FName ( TEXT ( "GizmoColor" ) ), Color );
 
     TArray<UMaterialInstanceDynamic*> MaterialInstanceArray;
-    MaterialInstanceArray.Add(MaterialInstanceDynamic);
+    MaterialInstanceArray.Add ( MaterialInstanceDynamic );
 
     TArray<FColor> MaterialColorArray;
-    MaterialColorArray.Add(Color);
+    MaterialColorArray.Add ( Color );
 
-    Axis->OnClicked.AddDynamic(this, &ATransformControl::OnAxisClicked);
-    Axis->OnReleased.AddDynamic(this, &ATransformControl::OnAxisReleased);
-    Axis->OnBeginCursorOver.AddDynamic(this, &ATransformControl::OnAxisBeginCursorOver);
-    Axis->OnEndCursorOver.AddDynamic(this, &ATransformControl::OnAxisEndCursorOver);
+    Axis->OnClicked.AddDynamic ( this, &ATransformControl::OnAxisClicked );
+    Axis->OnReleased.AddDynamic ( this, &ATransformControl::OnAxisReleased );
+    Axis->OnBeginCursorOver.AddDynamic ( this, &ATransformControl::OnAxisBeginCursorOver );
+    Axis->OnEndCursorOver.AddDynamic ( this, &ATransformControl::OnAxisEndCursorOver );
 
-    Axis->AttachTo(Center);
+    Axis->AttachTo ( Center );
 
-    AxisStatusMap.Add(Axis, ToolStatus);
-    MaterialColorMap.Add(Axis, MaterialColorArray);
-    MaterialInstanceMap.Add(Axis, MaterialInstanceArray);
+    AxisStatusMap.Add ( Axis, ToolStatus );
+    MaterialColorMap.Add ( Axis, MaterialColorArray );
+    MaterialInstanceMap.Add ( Axis, MaterialInstanceArray );
 
     return Axis;
 }
 
-class UStaticMeshComponent* ATransformControl::CreateCombinationAxis(FString Name, FString Group,
-            FColor Color1, FColor Color2, EToolStatusEnum ToolStatus)
+class UStaticMeshComponent* ATransformControl::CreateCombinationAxis ( FString Name, FString Group,
+            FColor Color1, FColor Color2, EToolStatusEnum ToolStatus )
 {
-    UMaterial* Mat = LoadObject<UMaterial>(NULL, TEXT("/Game/TransformTool/GizmoMaterial.GizmoMaterial"));
+    UMaterial* Mat = LoadObject<UMaterial> ( NULL, TEXT ( "/Game/TransformTool/GizmoMaterial.GizmoMaterial" ) );
 
-    UStaticMeshComponent* CombinationAxis = CreateDefaultSubobject<UStaticMeshComponent>(*(Group + Name));
-    CombinationAxis->StaticMesh = LoadObject<UStaticMesh>(NULL, *FString("/Game/TransformTool/" + Group + "/" + Name + "." + Name));
-    CombinationAxis->SetCollisionProfileName(FName("UI"));
+    UStaticMeshComponent* CombinationAxis = CreateDefaultSubobject<UStaticMeshComponent> ( * ( Group + Name ) );
+    CombinationAxis->StaticMesh = LoadObject<UStaticMesh> ( NULL, *FString ( "/Game/TransformTool/" + Group + "/" + Name + "." + Name ) );
+    CombinationAxis->SetCollisionProfileName ( TEXT ( "UI" ) );
+    CombinationAxis->SetCollisionEnabled ( ECollisionEnabled::QueryOnly );
     CombinationAxis->bCastDynamicShadow = false;
 
-    CombinationAxis->SetMaterial(0, Mat);
-    CombinationAxis->SetMaterial(1, Mat);
+    CombinationAxis->SetMaterial ( 0, Mat );
+    CombinationAxis->SetMaterial ( 1, Mat );
 
-    UMaterialInstanceDynamic* MaterialInstanceDynamic1 = CombinationAxis->CreateAndSetMaterialInstanceDynamic(0);
-    MaterialInstanceDynamic1->SetVectorParameterValue(FName(TEXT("GizmoColor")), Color1);
+    UMaterialInstanceDynamic* MaterialInstanceDynamic1 = CombinationAxis->CreateAndSetMaterialInstanceDynamic ( 0 );
+    MaterialInstanceDynamic1->SetVectorParameterValue ( FName ( TEXT ( "GizmoColor" ) ), Color1 );
 
-    UMaterialInstanceDynamic* MaterialInstanceDynamic2 = CombinationAxis->CreateAndSetMaterialInstanceDynamic(1);
-    MaterialInstanceDynamic2->SetVectorParameterValue(FName(TEXT("GizmoColor")), Color2);
+    UMaterialInstanceDynamic* MaterialInstanceDynamic2 = CombinationAxis->CreateAndSetMaterialInstanceDynamic ( 1 );
+    MaterialInstanceDynamic2->SetVectorParameterValue ( FName ( TEXT ( "GizmoColor" ) ), Color2 );
 
     TArray<UMaterialInstanceDynamic*> MaterialInstanceArray;
-    MaterialInstanceArray.Add(MaterialInstanceDynamic1);
-    MaterialInstanceArray.Add(MaterialInstanceDynamic2);
+    MaterialInstanceArray.Add ( MaterialInstanceDynamic1 );
+    MaterialInstanceArray.Add ( MaterialInstanceDynamic2 );
 
     TArray<FColor> MaterialColorArray;
-    MaterialColorArray.Add(Color1);
-    MaterialColorArray.Add(Color2);
+    MaterialColorArray.Add ( Color1 );
+    MaterialColorArray.Add ( Color2 );
 
-    CombinationAxis->OnClicked.AddDynamic(this, &ATransformControl::OnAxisClicked);
-    CombinationAxis->OnReleased.AddDynamic(this, &ATransformControl::OnAxisReleased);
-    CombinationAxis->OnBeginCursorOver.AddDynamic(this, &ATransformControl::OnAxisBeginCursorOver);
-    CombinationAxis->OnEndCursorOver.AddDynamic(this, &ATransformControl::OnAxisEndCursorOver);
+    CombinationAxis->OnClicked.AddDynamic ( this, &ATransformControl::OnAxisClicked );
+    CombinationAxis->OnReleased.AddDynamic ( this, &ATransformControl::OnAxisReleased );
+    CombinationAxis->OnBeginCursorOver.AddDynamic ( this, &ATransformControl::OnAxisBeginCursorOver );
+    CombinationAxis->OnEndCursorOver.AddDynamic ( this, &ATransformControl::OnAxisEndCursorOver );
 
-    CombinationAxis->AttachTo(Center);
+    CombinationAxis->AttachTo ( Center );
 
-    AxisStatusMap.Add(CombinationAxis, ToolStatus);
-    MaterialColorMap.Add(CombinationAxis, MaterialColorArray);
-    MaterialInstanceMap.Add(CombinationAxis, MaterialInstanceArray);
+    AxisStatusMap.Add ( CombinationAxis, ToolStatus );
+    MaterialColorMap.Add ( CombinationAxis, MaterialColorArray );
+    MaterialInstanceMap.Add ( CombinationAxis, MaterialInstanceArray );
 
     return CombinationAxis;
 }
 
-void ATransformControl::UpdateTransformControlPosition()
+void ATransformControl::UpdateTransformControl()
 {
-    if (!IsValid(OverlookActor) || !IsValid(AttachedCamera))
+    if ( !IsValid( OverlookActor ) || !IsValid( AttachedCamera ) )
     {
         return;
     }
 
-    FRotator ViewRotation = AttachedCamera->GetComponentRotation();
-    FVector ViewLocation = AttachedCamera->GetComponentLocation();
-
-    FVector moveToolLocation = (OverlookActor->GetActorLocation() - ViewLocation).Rotation().RotateVector(FVector(61.0f, 0.0f, 0.0f));
-    SetActorLocation(ViewLocation + moveToolLocation);
-	
-	if (EToolModeEnum::EM_SCALE == GetCurrentMode())
+    if ( bOrthogonalMode )
     {
-        SetActorRotation(OverlookActor->GetActorRotation());
+        OrthographicTransformControlUpdate();
     }
-	else
+    else
     {
-        SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
+        DefaultTransformControlUpdate();
+    }
+
+    if ( EToolModeEnum::EM_SCALE == GetCurrentMode() )
+    {
+        SetActorRotation( OverlookActor->GetActorRotation() );
+    }
+    else
+    {
+        SetActorRotation( FRotator( 0.0f, 0.0f, 0.0f ) );
     }
 }
 
-void ATransformControl::SetCurrentStatus(EToolStatusEnum Status)
+void ATransformControl::DefaultTransformControlUpdate()
+{
+    FRotator ViewRotation = AttachedCamera->GetComponentRotation();
+    FVector ViewLocation = AttachedCamera->GetComponentLocation();
+
+    FVector MoveToolLocation = ( OverlookActor->GetActorLocation() - ViewLocation ).Rotation().RotateVector( FVector( 61.0f, 0.0f, 0.0f ) );
+    SetActorLocation( ViewLocation + MoveToolLocation );
+
+
+}
+
+void ATransformControl::OrthographicTransformControlUpdate()
+{
+    float CameraOrthoWidth = AttachedCamera->OrthoWidth;
+
+    SetActorScale3D( FVector( CameraOrthoWidth / 100.0f, CameraOrthoWidth / 100.0f, CameraOrthoWidth / 100.0f ) );
+
+    FVector Location = GetOverLookActor()->GetActorLocation();
+
+    SetActorLocation( FVector( Location.X, Location.Y, Location.Z + 300.0f ) );
+
+    if ( EToolModeEnum::EM_SCALE == GetCurrentMode() )
+    {
+        SetActorRotation( OverlookActor->GetActorRotation() );
+    }
+    else
+    {
+        SetActorRotation( FRotator( 0.0f, 0.0f, 0.0f ) );
+    }
+}
+
+void ATransformControl::SetCurrentStatus ( EToolStatusEnum Status )
 {
     CurrentStatus = Status;
 }
@@ -239,27 +313,27 @@ EToolStatusEnum ATransformControl::GetCurrentStatus()
 
 void ATransformControl::AutoSwitchNextMode()
 {
-    switch (GetCurrentMode())
+    switch ( GetCurrentMode() )
     {
     case EToolModeEnum::EM_MOVE:
-        SetCurrentMode(EToolModeEnum::EM_ROTATE);
+        SetCurrentMode ( EToolModeEnum::EM_ROTATE );
         break;
     case EToolModeEnum::EM_ROTATE:
-        SetCurrentMode(EToolModeEnum::EM_SCALE);
+        SetCurrentMode ( EToolModeEnum::EM_SCALE );
         break;
     case EToolModeEnum::EM_SCALE:
-        SetCurrentMode(EToolModeEnum::EM_MOVE);
+        SetCurrentMode ( EToolModeEnum::EM_MOVE );
         break;
     default:
         break;
     }
 }
 
-void ATransformControl::SetCurrentMode(EToolModeEnum Mode)
+void ATransformControl::SetCurrentMode ( EToolModeEnum Mode )
 {
     CurrentMode = Mode;
 
-    SwitchControl(CurrentMode);
+    SwitchControl ( CurrentMode );
 }
 
 EToolModeEnum ATransformControl::GetCurrentMode()
@@ -267,120 +341,104 @@ EToolModeEnum ATransformControl::GetCurrentMode()
     return CurrentMode;
 }
 
-void ATransformControl::SwitchControl(EToolModeEnum mode)
+void ATransformControl::SwitchControl ( EToolModeEnum mode )
 {
-    HideAllMeshComponents();
-    SetAxisMeshComponentEnable(ControlCenter, true);
-    switch (mode)
+    CurrentAxes->HideAxes();
+
+    switch ( mode )
     {
     case EToolModeEnum::EM_MOVE:
-        SetAxesMeshComponentEnable(MoveToolAxes, true);
+        CurrentAxes = MoveAxes;
         break;
     case EToolModeEnum::EM_ROTATE:
-        SetAxesMeshComponentEnable(RotateToolAxes, true);
-        SetAxisMeshComponentEnable(ControlCenter, false);
+        CurrentAxes = RotateAxes;
         break;
     case EToolModeEnum::EM_SCALE:
-        SetAxesMeshComponentEnable(ScaleToolAxes, true);
+        CurrentAxes = ScaleAxes;
         break;
     default:
         break;
     }
+
+    CurrentAxes->ShowAxes();
 }
 
-void ATransformControl::SetAxesMeshComponentEnable(const TArray<UStaticMeshComponent*> &AxesMesh, bool bEnable)
+void ATransformControl::SetIsOrthogonal( bool bIsOrthogonal )
 {
-    for (int32 index = 0; index < AxesMesh.Num(); ++index)
-    {
-        SetAxisMeshComponentEnable(AxesMesh[index], bEnable);
-    }
+    bOrthogonalMode = bIsOrthogonal;
 }
 
-void ATransformControl::SetAxisMeshComponentEnable(class UStaticMeshComponent* MeshComponent, bool bEnable)
+class ControlAxes* ATransformControl::GetCurrentAxes()
 {
-    MeshComponent->SetCollisionProfileName(FName("UI"));
-    bEnable ? MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly) : MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    MeshComponent->SetVisibility(bEnable);
+    return CurrentAxes;
 }
 
-void ATransformControl::HideAllMeshComponents()
+class ControlAxes* ATransformControl::GetMoveAxes()
 {
-    TArray<UActorComponent*> Comps;
-
-    GetComponents(Comps);
-
-    for (int32 index = 0; index < Comps.Num(); ++index)
-    {
-        UStaticMeshComponent* MeshComp = Cast<UStaticMeshComponent>(Comps[index]);
-
-        if (nullptr == MeshComp)
-        {
-            continue;
-        }
-        SetAxisMeshComponentEnable(MeshComp, false);
-    }
+    return MoveAxes;
 }
 
-void ATransformControl::OnAxisClicked(class UPrimitiveComponent* TouchedComponent)
+class ControlAxes* ATransformControl::GetRotateAxes()
 {
-    GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Blue, "Clicked: " + TouchedComponent->GetName());
-
-    SetCurrentStatus(*AxisStatusMap.Find(Cast<UStaticMeshComponent>(TouchedComponent)));
+    return RotateAxes;
 }
 
-void ATransformControl::OnAxisReleased(class UPrimitiveComponent* TouchedComponent)
+class ControlAxes* ATransformControl::GetScaleAxes()
 {
-    SetCurrentStatus(EToolStatusEnum::ES_NONE);
+    return ScaleAxes;
 }
 
-void ATransformControl::OnAxisBeginCursorOver(class UPrimitiveComponent* TouchedComponent)
+void ATransformControl::OnAxisClicked ( class UPrimitiveComponent* TouchedComponent )
 {
-    SwitchMouseCursor(EMouseCursor::Type::CardinalCross);
+    GEngine->AddOnScreenDebugMessage ( -1, 3.0f, FColor::Blue, "Clicked: " + TouchedComponent->GetName() );
 
-    if (GetCurrentStatus() != EToolStatusEnum::ES_NONE)
+    SetCurrentStatus ( *AxisStatusMap.Find ( Cast<UStaticMeshComponent> ( TouchedComponent ) ) );
+}
+
+void ATransformControl::OnAxisReleased ( class UPrimitiveComponent* TouchedComponent )
+{
+    SetCurrentStatus ( EToolStatusEnum::ES_NONE );
+}
+
+void ATransformControl::OnAxisBeginCursorOver ( class UPrimitiveComponent* TouchedComponent )
+{
+    SwitchMouseCursor ( EMouseCursor::Type::CardinalCross );
+
+    if ( GetCurrentStatus() != EToolStatusEnum::ES_NONE )
     {
         return;
     }
 
-    SetAxisCursorOverColor(Cast<UStaticMeshComponent>(TouchedComponent));
+    SetAxisCursorOverColor ( Cast<UStaticMeshComponent> ( TouchedComponent ) );
 }
 
-void ATransformControl::OnAxisEndCursorOver(class UPrimitiveComponent* TouchedComponent)
+void ATransformControl::OnAxisEndCursorOver ( class UPrimitiveComponent* TouchedComponent )
 {
-    SwitchMouseCursor(EMouseCursor::Type::Default);
+    SwitchMouseCursor ( EMouseCursor::Type::Default );
 
-    if (GetCurrentStatus() != EToolStatusEnum::ES_NONE)
+    if ( GetCurrentStatus() != EToolStatusEnum::ES_NONE )
     {
         return;
     }
 
-    RecoverAxisColor(Cast<UStaticMeshComponent>(TouchedComponent));
+    RecoverAxisColor ( Cast<UStaticMeshComponent> ( TouchedComponent ) );
 }
 
-void ATransformControl::SwitchMouseCursor(EMouseCursor::Type type)
+void ATransformControl::SwitchMouseCursor ( EMouseCursor::Type type )
 {
-    UGameplayStatics::GetPlayerController(GetWorld(), 0)->CurrentMouseCursor = type;
+    UGameplayStatics::GetPlayerController ( GetWorld(), 0 )->CurrentMouseCursor = type;
 }
 
-void ATransformControl::SetAxisCursorOverColor(UStaticMeshComponent* Axis)
+void ATransformControl::SetAxisCursorOverColor ( UStaticMeshComponent* Axis )
 {
-    TArray<UMaterialInstanceDynamic*> MaterialInstanceArray = *MaterialInstanceMap.Find(Axis);
-    for (int32 index = 0; index < MaterialInstanceArray.Num(); ++index)
-    {
-        MaterialInstanceArray[index]->SetVectorParameterValue(FName(TEXT("GizmoColor")), FColor(0xFF, 0xFF, 0x00, 0xFF));
-    }
+    GEngine->AddOnScreenDebugMessage ( -1, 3.0f, FColor::Blue, "SetAxisCursorOverColor: " + Axis->GetName() );
 
-    GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Blue, "SetAxisCursorOverColor: " + Axis->GetName());
+    CurrentAxes->SetMouseMoveIn ( Axis );
 }
 
-void ATransformControl::RecoverAxisColor(UStaticMeshComponent* Axis)
+void ATransformControl::RecoverAxisColor ( UStaticMeshComponent* Axis )
 {
-    TArray<UMaterialInstanceDynamic*> MaterialInstanceArray = *MaterialInstanceMap.Find(Axis);
-    TArray<FColor> MaterialColorArray = *MaterialColorMap.Find(Axis);
-    for (int32 index = 0; index < MaterialInstanceArray.Num(); ++index)
-    {
-        MaterialInstanceArray[index]->SetVectorParameterValue(FName(TEXT("GizmoColor")), MaterialColorArray[index]);
-    }
+    GEngine->AddOnScreenDebugMessage ( -1, 3.0f, FColor::Blue, "RecoverAxisColor" );
 
-    GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Blue, "RecoverAxisColor");
+    CurrentAxes->SetMouseMoveOut ( Axis );
 }
