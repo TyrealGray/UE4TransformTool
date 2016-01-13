@@ -2,10 +2,12 @@
 An UE4 Actor class which simulate the UE4Editor TransformTool
 # To Begin
 > Spawn tool in world,and bind to your character's camera component
->```C++
+
+```C++
 YourTransformTool = GetWorld()->SpawnActor<ATransformControl>(ATransformControl::StaticClass());
 YourTransformTool->AttachToCamera(YourCharacterCameraComponent);
 ```
+
 > Then use `ATransformControl::SetOverlookActor(class AActor* Actor)` function to show tool on the actor
 
 #EToolStatusEnum
