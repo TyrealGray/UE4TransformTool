@@ -1,6 +1,9 @@
 # UE4TransformTool
 An UE4 Actor class which simulate the UE4Editor TransformTool
+
 # To Begin
+Download ue4.10.4 and Visual Studio 2015
+
 > Spawn tool in world,and bind to your character's camera component
 
 ```C++
